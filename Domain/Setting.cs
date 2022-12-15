@@ -1,16 +1,12 @@
-﻿using System;
+﻿using Domain.Common;
+using System;
 using System.Collections.Generic;
 
 namespace Domain 
 {
-    public class Setting
+    public class Setting : BaseDomainProperties
     {
-        public Guid NidSetting { get; set; }
-
         public string SettingAttribute { get; set; } = null!;
-
         public string SettingValue { get; set; } = null!;
-
-        public byte State { get; set; }
     }
 }

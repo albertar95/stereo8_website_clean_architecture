@@ -6,15 +6,10 @@ namespace Domain
     public class ShipPrice
     {
         public int Id { get; set; }
-
         public int FromWeight { get; set; }
-
         public int ToWeight { get; set; }
-
         public decimal InnerState { get; set; }
-
         public decimal NeighborState { get; set; }
-
         public decimal OtherState { get; set; }
     }
 }
