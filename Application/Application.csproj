@@ -7,8 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Feature\" />
-    <Folder Include="Persistance\Contracts\" />
+    <Folder Include="Feature\Brand\Handlers\Query\" />
+    <Folder Include="Feature\Category\Handlers\Query\" />
+    <Folder Include="Feature\Product\Handlers\Query\" />
+    <Folder Include="Feature\Type\Handlers\Query\" />
   </ItemGroup>
 
   <ItemGroup>
