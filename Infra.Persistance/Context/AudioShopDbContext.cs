@@ -19,14 +19,14 @@ namespace Infra.Persistance.Context
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Product> Products { get; set; }
         //override onconfiguring
-        protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder) 
+        protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
-            dbContextOptionsBuilder.UseSqlServer("Server=.\\MSSQL2017;Database=AudioShopMSDb;User Id=sa;Password=safa@123;"
+            dbContextOptionsBuilder.UseSqlServer("Server=.\\MSSQL2017;Database=AudioShopMSDb;User Id=sa;Password=safa@123;TrustServerCertificate=true;"
             , o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)); // split query join
             dbContextOptionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
         //override onmodelcreating
-        protected override void OnModelCreating(ModelBuilder modelBuilder) 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //primary key
             modelBuilder.Entity<Category>().HasKey(x => x.Id).HasName("PK_Categories");
@@ -39,20 +39,29 @@ namespace Infra.Persistance.Context
             modelBuilder.Entity<Brand>().Property(x => x.CreateDate).HasDefaultValueSql("getdate()");
             modelBuilder.Entity<Product>().Property(x => x.CreateDate).HasDefaultValueSql("getdate()");
             //relationships : base and reference types and foreign key and cascade delete
-            modelBuilder.Entity<Category>().HasMany(x => x.Products).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Category>().HasMany(x => x.Types).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Category>().HasMany(x => x.Brands).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Brand>().HasMany(x => x.Products).WithOne(q => q.Brand).HasForeignKey(p => p.BrandId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Domain.Type>().HasMany(x => x.Products).WithOne(q => q.Type).HasForeignKey(p => p.TypeId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Product>().HasMany(x => x.Carts).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Product>().HasMany(x => x.Favorites).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Product>().HasMany(x => x.Comments).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Product>().HasMany(x => x.OrderDetails).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Category>().HasMany(x => x.Products).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Category>().HasMany(x => x.Types).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Category>().HasMany(x => x.Brands).WithOne(q => q.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Brand>().HasMany(x => x.Products).WithOne(q => q.Brand).HasForeignKey(p => p.BrandId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Domain.Type>().HasMany(x => x.Products).WithOne(q => q.Type).HasForeignKey(p => p.TypeId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Product>().HasMany(x => x.Carts).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Product>().HasMany(x => x.Favorites).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Product>().HasMany(x => x.Comments).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Product>().HasMany(x => x.OrderDetails).WithOne(q => q.Product).HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.NoAction);
             //indexes
             modelBuilder.Entity<Product>().HasIndex(x => new { x.ProductName }, "IX_ProductName");
             //auto include (eager loading)
-            modelBuilder.Entity<Category>().Navigation(x => x.Brands).AutoInclude();
-            modelBuilder.Entity<Category>().Navigation(x => x.Types).AutoInclude();
+            //modelBuilder.Entity<Category>().Navigation(x => x.Brands).AutoInclude();
+            //modelBuilder.Entity<Category>().Navigation(x => x.Types).AutoInclude();
+            //decimal type declaration
+            modelBuilder.Entity<Order>().Property(p => p.MelliCode).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Order>().Property(p => p.TotalPrice).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Order>().Property(p => p.ZipCode).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Product>().Property(p => p.PriceWithoutOff).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Ship>().Property(p => p.ShipPrice).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<Ship>().Property(p => p.ZipCode).HasColumnType("decimal(12,0)");
+            modelBuilder.Entity<User>().Property(p => p.ZipCode).HasColumnType("decimal(12,0)");
         }
     }
 }

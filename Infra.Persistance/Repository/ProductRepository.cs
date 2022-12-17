@@ -21,6 +21,10 @@ namespace Infra.Persistance.Repository
         }
         public async Task<bool> CreateProduct(Product item)
         {
+            item.Id = Guid.NewGuid();
+            item.State = 0;
+            item.CreateDate = DateTime.Now;
+            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
             _context.Products.Add(item);
             if (await _context.SaveChangesAsync() == 1)
                 return true;

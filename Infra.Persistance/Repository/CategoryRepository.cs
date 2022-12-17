@@ -25,6 +25,10 @@ namespace Infra.Persistance.Repository
         }
         public async Task<bool> CreateBrand(Brand item)
         {
+            item.Id = Guid.NewGuid();
+            item.State = 0;
+            item.CreateDate = DateTime.Now;
+            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
             _context.Brands.Add(item);
             if(await _context.SaveChangesAsync() == 1)
                 return true;
@@ -34,6 +38,10 @@ namespace Infra.Persistance.Repository
 
         public async Task<bool> CreateCategory(Category item)
         {
+            item.Id = Guid.NewGuid();
+            item.State = 0;
+            item.CreateDate = DateTime.Now;
+            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
             _context.Categories.Add(item);
             if (await _context.SaveChangesAsync() == 1)
                 return true;
@@ -43,6 +51,10 @@ namespace Infra.Persistance.Repository
 
         public async Task<bool> CreateType(Domain.Type item)
         {
+            item.Id = Guid.NewGuid();
+            item.State = 0;
+            item.CreateDate = DateTime.Now;
+            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
             _context.Types.Add(item);
             if (await _context.SaveChangesAsync() == 1)
                 return true;
@@ -123,7 +135,7 @@ namespace Infra.Persistance.Repository
         public async Task<bool> UpdateCategory(Category item)
         {
             item.LastModified = DateTime.Now;
-            item.PersianLastModified = GetPersianDate(DateTime.Now);
+            item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
             if (await _context.SaveChangesAsync() == 1)
                 return true;
             else
@@ -133,7 +145,7 @@ namespace Infra.Persistance.Repository
         public async Task<bool> UpdateType(Domain.Type item)
         {
             item.LastModified = DateTime.Now;
-            item.PersianLastModified = GetPersianDate(DateTime.Now);
+            item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
             if (await _context.SaveChangesAsync() == 1)
                 return true;
             else
