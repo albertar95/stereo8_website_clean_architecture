@@ -21,10 +21,15 @@ namespace Application.Feature.Product.Handlers.Command
             _mapper = mapper;
         }
 
-        public Task<bool> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
         {
-            var product = _mapper.Map<Domain.Product>(request.product);
-            return _productRepository.UpdateProduct(product);
+            var product = await _productRepository.GetProduct(request.product.Id);
+            if (product == null) return false;
+            else
+            {
+                _mapper.Map(request.product, product);
+                return await _productRepository.UpdateProduct(product);
+            }
         }
     }
 }

@@ -22,10 +22,15 @@ namespace Application.Feature.Category.Handlers.Command
             _mapper = mapper;
         }
 
-        public Task<bool> Handle(UpdateCategoryRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateCategoryRequest request, CancellationToken cancellationToken)
         {
-            var category = _mapper.Map<Domain.Category>(request.category);
-            return _categoryRepository.UpdateCategory(category);
+            var category = await _categoryRepository.GetCategory(request.category.Id);
+            if (category == null) return false;
+            else
+            {
+                _mapper.Map(request.category, category);
+                return await _categoryRepository.UpdateCategory(category);
+            }
         }
     }
 }

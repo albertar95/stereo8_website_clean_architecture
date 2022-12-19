@@ -38,6 +38,7 @@ namespace Infra.Persistance.Repository
             if (product != null)
             {
                 product.State = 1;
+                _context.Entry(product).State = EntityState.Modified;
                 if (await _context.SaveChangesAsync() == 1)
                     return true;
                 else
@@ -56,6 +57,7 @@ namespace Infra.Persistance.Repository
         {
             item.LastModified = DateTime.Now;
             item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
+            _context.Entry(item).State = EntityState.Modified;
             if (await _context.SaveChangesAsync() == 1)
                 return true;
             else

@@ -21,10 +21,15 @@ namespace Application.Feature.Type.Handlers.Command
             _mapper = mapper;
         }
 
-        public Task<bool> Handle(UpdateTypeRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateTypeRequest request, CancellationToken cancellationToken)
         {
-            var type = _mapper.Map<Domain.Type>(request.type);
-            return _categoryRepository.UpdateType(type);
+            var type = await _categoryRepository.GetType(request.type.Id);
+            if (type == null) return false;
+            else
+            {
+                _mapper.Map(request.type, type);
+                return await _categoryRepository.UpdateType(type);
+            }
         }
     }
 }

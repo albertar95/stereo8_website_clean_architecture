@@ -68,6 +68,7 @@ namespace Infra.Persistance.Repository
             if (brand != null)
             {
                 brand.State = 1;
+                _context.Entry(brand).State = EntityState.Modified;
                 if (await _context.SaveChangesAsync() == 1)
                     return true;
                 else
@@ -83,6 +84,7 @@ namespace Infra.Persistance.Repository
             if (category != null)
             {
                 category.State = 1;
+                _context.Entry(category).State = EntityState.Modified;
                 if (await _context.SaveChangesAsync() == 1)
                     return true;
                 else
@@ -98,6 +100,7 @@ namespace Infra.Persistance.Repository
             if (type != null)
             {
                 type.State = 1;
+                _context.Entry(type).State = EntityState.Modified;
                 if (await _context.SaveChangesAsync() == 1)
                     return true;
                 else
@@ -126,6 +129,7 @@ namespace Infra.Persistance.Repository
         {
             item.LastModified = DateTime.Now;
             item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
+            _context.Entry(item).State = EntityState.Modified;
             if (await _context.SaveChangesAsync() == 1)
                 return true;
             else
@@ -135,6 +139,7 @@ namespace Infra.Persistance.Repository
         public async Task<bool> UpdateCategory(Category item)
         {
             item.LastModified = DateTime.Now;
+            _context.Entry(item).State = EntityState.Modified;
             item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
             if (await _context.SaveChangesAsync() == 1)
                 return true;
@@ -146,6 +151,7 @@ namespace Infra.Persistance.Repository
         {
             item.LastModified = DateTime.Now;
             item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
+            _context.Entry(item).State = EntityState.Modified;
             if (await _context.SaveChangesAsync() == 1)
                 return true;
             else

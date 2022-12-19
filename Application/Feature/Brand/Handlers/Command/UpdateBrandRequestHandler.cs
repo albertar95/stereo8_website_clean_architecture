@@ -21,10 +21,15 @@ namespace Application.Feature.Brand.Handlers.Command
             _mapper = mapper;
         }
 
-        public Task<bool> Handle(UpdateBrandRequest request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateBrandRequest request, CancellationToken cancellationToken)
         {
-            var brand = _mapper.Map<Domain.Brand>(request.brand);
-            return _categoryRepository.UpdateBrand(brand);
+            var brand = await _categoryRepository.GetBrand(request.brand.Id);
+            if (brand == null) return false;
+            else
+            {
+                _mapper.Map(request.brand, brand);
+                return await _categoryRepository.UpdateBrand(brand);
+            }
         }
     }
 }
