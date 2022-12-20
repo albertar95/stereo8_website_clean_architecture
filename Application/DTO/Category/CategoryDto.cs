@@ -15,7 +15,7 @@ namespace Application.DTO.Category
         public string CategoryName { get; set; } = null!;
         public string? Description { get; set; }
         public string? Keywords { get; set; }
-        public virtual ICollection<BrandDto> Brands { get; } = new List<BrandDto>();
-        public virtual ICollection<TypeDto> Types { get; } = new List<TypeDto>();
+        public ICollection<BrandDto> Brands { get; } = new List<BrandDto>();
+        public ICollection<TypeDto> Types { get; } = new List<TypeDto>();
     }
 }

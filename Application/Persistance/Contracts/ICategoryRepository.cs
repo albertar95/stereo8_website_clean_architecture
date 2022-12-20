@@ -26,7 +26,7 @@ namespace Application.Persistance.Contracts
         Task<Brand> GetBrand(Guid NidBrand);
         Task<Domain.Type> GetType(Guid NidType);
         // to process actions
-        //IEnumerable<CategoryListDto> GetCategories(byte State = 0);
-        //IEnumerable<CategoryListDto> GetAllCategories();
+        Task<IEnumerable<Category>> GetCategories(int State = 0);
+        Task<IEnumerable<Category>> GetAllCategories();
     }
 }

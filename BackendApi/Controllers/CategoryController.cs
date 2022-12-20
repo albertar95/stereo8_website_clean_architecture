@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BackendApi.Controllers
 {
-    [Route("api/backend/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
@@ -37,6 +37,11 @@ namespace BackendApi.Controllers
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             return Ok(await _mediator.Send(new DeleteCategoryRequest() { Id = id }));
+        }
+        [HttpGet("GetCategoryList")]
+        public async Task<IActionResult> GetCategoryList([FromQuery]int state = 0) 
+        {
+            return Ok(await _mediator.Send(new GetCategoryListRequest(){ State = state}));
         }
         //brand section
         [HttpPost("CreateBrand")]

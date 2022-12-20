@@ -51,8 +51,8 @@ namespace Infra.Persistance.Context
             //indexes
             modelBuilder.Entity<Product>().HasIndex(x => new { x.ProductName }, "IX_ProductName");
             //auto include (eager loading)
-            //modelBuilder.Entity<Category>().Navigation(x => x.Brands).AutoInclude();
-            //modelBuilder.Entity<Category>().Navigation(x => x.Types).AutoInclude();
+            modelBuilder.Entity<Category>().Navigation(x => x.Brands).AutoInclude();
+            modelBuilder.Entity<Category>().Navigation(x => x.Types).AutoInclude();
             //decimal type declaration
             modelBuilder.Entity<Order>().Property(p => p.MelliCode).HasColumnType("decimal(12,0)");
             modelBuilder.Entity<Order>().Property(p => p.TotalPrice).HasColumnType("decimal(12,0)");

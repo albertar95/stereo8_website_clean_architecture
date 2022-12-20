@@ -110,9 +110,19 @@ namespace Infra.Persistance.Repository
                 return false;
         }
 
+        public async Task<IEnumerable<Category>> GetAllCategories()
+        {
+            return await _context.Categories.ToListAsync();
+        }
+
         public async Task<Brand> GetBrand(Guid NidBrand)
         {
             return await _context.Brands.FirstOrDefaultAsync(b => b.Id == NidBrand) ?? null!;
+        }
+
+        public async Task<IEnumerable<Category>> GetCategories(int State = 0)
+        {
+            return await _context.Categories.Where(p => p.State == State).ToListAsync();
         }
 
         public async Task<Category> GetCategory(Guid NidCategory)
