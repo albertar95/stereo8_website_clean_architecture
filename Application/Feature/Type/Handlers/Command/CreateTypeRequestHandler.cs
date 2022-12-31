@@ -24,7 +24,7 @@ namespace Application.Feature.Type.Handlers.Command
         public Task<bool> Handle(CreateTypeRequest request, CancellationToken cancellationToken)
         {
             var type = _mapper.Map<Domain.Type>(request.type);
-            return _categoryRepository.CreateType(type);
+            return _categoryRepository.Create(type);
         }
     }
 }

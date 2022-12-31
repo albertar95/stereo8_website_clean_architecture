@@ -1,0 +1,49 @@
+﻿@model int
+@{
+    ViewData["Title"] = "StatusCodes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- 404 Error Text -->
+<div class="text-center">
+    <div class="error mx-auto" data-text="@Model">@Model</div>
+    @switch (Model)
+    {
+        case 401:
+            <p class="lead text-gray-800 mb-5">متاسفیم! دسترسی شما به صفحه مورد نظر غیرمجاز می باشد</p>
+            <p class="text-gray-500 mb-0">
+                سرور برای انجام درخواست به احراز هویت کاربر نیاز دارد
+                <br /> و صفحه مورد نظر از حالت عمومی خارج شده است
+            </p>
+            break;
+        case 404:
+            <p class="lead text-gray-800 mb-5">متاسفیم! صفحه مورد نظر یافت نشد</p>
+            <p class="text-gray-500 mb-0">
+                صفحه مورد نظر شما
+                <br>حذف شده ، تغییر نام کرده یا به طور موقت در دسترس نیست.
+            </p>
+            break;
+        case 500:
+            <p class="lead text-gray-800 mb-5">خطای داخلی سرور</p>
+            <p class="text-gray-500 mb-0">
+                مشکلی در سرور به وجود آمده است
+                <br>لطفا مجددا امتحان کنید و یا با پشتیبانی سایت تماس بگیرید.
+            </p>
+            break;
+        case 503:
+            <p class="lead text-gray-800 mb-5">سرویس از دسترس خارج است</p>
+            <p class="text-gray-500 mb-0">
+                سرور در حال حاضر آماده رسیدگی و پاسخگویی به درخواست شما نیست.
+                <br>لطفا در زمانی دیگر درخواست خود را امتحان کنید.
+            </p>
+            break;
+        default:
+            <p class="lead text-gray-800 mb-5">خطایی رخ داده است</p>
+            <p class="text-gray-500 mb-0">
+                درخواست شما با وضعیت کد @Model
+                <br>مواجه شده است.لطفا در زمانی دیگر درخواست خود را امتحان کنید
+            </p>
+            break;
+    }
+    <a href="/"> بازگشت به صفحه اصلی </a>
+</div>

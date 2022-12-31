@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Domain;
 using System;
-using BackendUI.Helpers;
 using BackendUI.ViewModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
@@ -11,6 +10,13 @@ using System.Reflection;
 using System.Security.Claims;
 using Newtonsoft.Json;
 using Application.DTO.Category;
+using System.Text;
+using Application.DTO.Type;
+using Application.DTO.Brand;
+using Application.DTO.Product;
+using Application.Model;
+using Application.DTO.File;
+using Application.Helpers;
 
 namespace BackendUI.Controllers
 {
@@ -22,228 +28,399 @@ namespace BackendUI.Controllers
         {
             _hostingEnvironment = environment;
             BaseAddress = configuration.GetSection("backendApiAddress").Value;
+            //BaseAddress = configuration.GetSection("backendApiAddressDebug").Value;//for debug api
         }
         //category section
         public async Task<IActionResult> Categories()
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
-            if (result.ResultCode == System.Net.HttpStatusCode.OK)
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList?includeProduct=true");
+            if (result.IsSuccessfulResult())
                 return View(JsonConvert.DeserializeObject<List<CategoryListDto>>(result.Content));
             else
-                return RedirectToAction("StatusCodes", result.ResultCode);
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult AddCategory(Category category)
+        public async Task<IActionResult> AddCategory(CreateCategoryDto category)
         {
-            //category.NidCategory = Guid.NewGuid();
-            //category.CreateDate = DateTime.Now;
-            //category.State = 0;
-            //if (_categoryAction.Add<Category>(category))
-            //    TempData["CategorySuccess"] = "دسته بندی با موفقیت ایجاد گردید";
-            //else
-            //    TempData["CategoryError"] = "خطا در ایجاد دسته بندی.لطفا مجددا امتحان کنید";
+            var Content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateCategory", Content);
+            if(result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategorySuccess"] = "دسته بندی با موفقیت ایجاد گردید";
+                else
+                    TempData["CategoryError"] = "خطا در ایجاد دسته بندی.لطفا مجددا امتحان کنید";
+            }else
+                TempData["CategoryError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
             return RedirectToAction("Categories");
         }
-        public IActionResult Category(Guid NidCategory)
+        public async Task<IActionResult> Category(Guid NidCategory)
         {
-            //var category = _categoryAction.GetCategory(NidCategory);
-            return View();
+            var model = new CategoryViewModel();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategory/{NidCategory}?includeProduct=true");
+            if (result.IsSuccessfulResult())
+            {
+                model.Category = JsonConvert.DeserializeObject<CategoryDto>(result.Content) ?? new CategoryDto();
+                var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidCategory}");
+                if (result2.IsSuccessfulResult())
+                    model.Files = JsonConvert.DeserializeObject<List<FileListDto>>(result2.Content) ?? new List<FileListDto>();
+                return View(model);
+            }
+            else return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult EditType(Guid NidType)
+        public async Task<IActionResult> EditType(Guid NidType)
         {
-            //var type = _categoryAction.GetType(NidType);
-            return View();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetType/{NidType}");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<TypeDto>(result.Content));
+            else return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult EditBrand(Guid NidBrand)
+        public async Task<IActionResult> EditBrand(Guid NidBrand)
         {
-            //var brand = _categoryAction.GetBrand(NidBrand);
-            return View();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetBrand/{NidBrand}");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<BrandDto>(result.Content));
+            else return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult EditCategory(Category category)
+        public async Task<IActionResult> EditCategory(UpdateCategoryDto category)
         {
-            //category.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateCategory(category))
-            //    TempData["CategoryPageSuccess"] = "دسته بندی با موفقیت ویرایش گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در ویرایش دسته بندی.لطفا مجددا امتحان کنید";
-            //return RedirectToAction("Category", new { NidCategory = category.NidCategory });
-            return View();
+            var Content = new StringContent(JsonConvert.SerializeObject(category),Encoding.UTF8,"application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateCategory", Content);
+            if(result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "دسته بندی با موفقیت ویرایش گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در ویرایش دسته بندی.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
+            return RedirectToAction("Category", new { NidCategory = category.Id });
         }
-        public IActionResult DeleteCategory(Guid NidCategory)
+        public async Task<IActionResult> DeleteCategory(Guid NidCategory)
         {
-            //var category = _categoryAction.GetCategory(NidCategory, false, false, false);
-            //category.State = 2;
-            //category.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateCategory(category))
-            //    TempData["CategorySuccess"] = "دسته بندی با موفقیت حذف گردید";
-            //else
-            //    TempData["CategoryError"] = "خطا در حذف دسته بندی.لطفا مجددا امتحان کنید";
-            return RedirectToAction("Categories");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategorySuccess"] = "دسته بندی با موفقیت حذف گردید";
+                else
+                    TempData["CategoryError"] = "خطا در حذف دسته بندی.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
+            return RedirectToAction("Category", new { NidCategory = NidCategory });
         }
-        public IActionResult CloseCategory(Guid NidCategory)
+        public async Task<IActionResult> AddType(CreateTypeDto type)
         {
-            //var category = _categoryAction.GetCategory(NidCategory, false, false, false);
-            //category.State = 1;
-            //category.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateCategory(category))
-            //    TempData["CategorySuccess"] = "دسته بندی با موفقیت غیرفعال گردید";
-            //else
-            //    TempData["CategoryError"] = "خطا در غیرفعال کردن دسته بندی.لطفا مجددا امتحان کنید";
-            return RedirectToAction("Categories");
-        }
-        public IActionResult AddType(Domain.Type type)
-        {
-            //type.NidType = Guid.NewGuid();
-            //type.State = 0;
-            //type.CreateDate = DateTime.Now;
-            //if (_categoryAction.Add<Models.Type>(type))
-            //    TempData["CategoryPageSuccess"] = "نوع با موفقیت ایجاد گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در ایجاد نوع.لطفا مجددا امتحان کنید";
+            var Content = new StringContent(JsonConvert.SerializeObject(type), Encoding.UTF8, "application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateType", Content);
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "نوع با موفقیت ایجاد گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در ایجاد نوع.لطفا مجددا امتحان کنید";
+            }
+            else
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
             return RedirectToAction("Category", new { NidCategory = type.CategoryId });
         }
-        public IActionResult AddBrand(Brand brand)
+        public async Task<IActionResult> AddBrand(CreateBrandDto brand)
         {
-            //brand.NidBrand = Guid.NewGuid();
-            //brand.State = 0;
-            //brand.CreateDate = DateTime.Now;
-            //if (_categoryAction.Add<Brand>(brand))
-            //    TempData["CategoryPageSuccess"] = "برند با موفقیت ایجاد گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در ایجاد برند.لطفا مجددا امتحان کنید";
+            var Content = new StringContent(JsonConvert.SerializeObject(brand), Encoding.UTF8, "application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateBrand", Content);
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "برند با موفقیت ایجاد گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در ایجاد برند.لطفا مجددا امتحان کنید";
+            }
+            else
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
             return RedirectToAction("Category", new { NidCategory = brand.CategoryId });
         }
-        public IActionResult DeleteType(Guid NidType)
+        public async Task<IActionResult> DeleteType(Guid NidType,Guid NidCategory)
         {
-            //var type = _categoryAction.GetType(NidType);
-            //type.State = 2;
-            //type.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateType(type))
-            //    TempData["CategoryPageSuccess"] = "نوع با موفقیت حذف گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در حذف نوع.لطفا مجددا امتحان کنید";
-            //return RedirectToAction("Category", new { NidCategory = type.CategoryId });
-            return View();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteType/{NidType}");
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "نوع با موفقیت حذف گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در حذف نوع.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
+            return RedirectToAction("Category", new { NidCategory = NidCategory });
         }
-        public IActionResult SubmitEditType(Domain.Type type)
+        public async Task<IActionResult> SubmitEditType(UpdateTypeDto type)
         {
-            //type.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateType(type))
-            //    TempData["CategoryPageSuccess"] = "نوع با موفقیت ویرایش گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در ویرایش نوع.لطفا مجددا امتحان کنید";
+            var Content = new StringContent(JsonConvert.SerializeObject(type), Encoding.UTF8, "application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateType", Content);
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "نوع با موفقیت ویرایش گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در ویرایش نوع.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
             return RedirectToAction("Category", new { NidCategory = type.CategoryId });
         }
-        public IActionResult DeleteBrand(Guid NidBrand)
+        public async Task<IActionResult> DeleteBrand(Guid NidBrand, Guid NidCategory)
         {
-            //var brand = _categoryAction.GetBrand(NidBrand);
-            //brand.State = 2;
-            //brand.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateBrand(brand))
-            //    TempData["CategoryPageSuccess"] = "برند با موفقیت حذف گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در حذف برند.لطفا مجددا امتحان کنید";
-            //return RedirectToAction("Category", new { NidCategory = brand.CategoryId });
-            return View();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteBrand/{NidBrand}");
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "برند با موفقیت حذف گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در حذف برند.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
+            return RedirectToAction("Category", new { NidCategory = NidCategory });
         }
-        public IActionResult SubmitEditBrand(Brand brand)
+        public async Task<IActionResult> SubmitEditBrand(UpdateBrandDto brand)
         {
-            //brand.LastModified = DateTime.Now;
-            //if (_categoryAction.UpdateBrand(brand))
-            //    TempData["CategoryPageSuccess"] = "برند با موفقیت ویرایش گردید";
-            //else
-            //    TempData["CategoryPageError"] = "خطا در ویرایش برند.لطفا مجددا امتحان کنید";
+            var Content = new StringContent(JsonConvert.SerializeObject(brand), Encoding.UTF8, "application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateBrand", Content);
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategoryPageSuccess"] = "برند با موفقیت ویرایش گردید";
+                else
+                    TempData["CategoryPageError"] = "خطا در ویرایش برند.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryPageError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
             return RedirectToAction("Category", new { NidCategory = brand.CategoryId });
+        }
+        public async Task<IActionResult> CloseCategory(Guid NidCategory)
+        {
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CategorySuccess"] = "دسته بندی با موفقیت غیرفعال گردید";
+                else
+                    TempData["CategoryError"] = "خطا در غیرفعال کردن دسته بندی.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["CategoryError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
+            return RedirectToAction("Categories");
         }
         //product section
-        public IActionResult Products()
+        public async Task<IActionResult> Products()
         {
-            //ProductViewModel model = new ProductViewModel();
-            //model.Products = _productAction.GetProducts();
-            //model.Categories = _categoryAction.GetCategories();
-            return View();
+            ProductViewModel model = new ProductViewModel();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductList", null);
+            if (result.IsSuccessfulResult())
+                model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(result.Content);
+            else
+                model.Products = new List<ProductListDto>();
+            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            if (result2.IsSuccessfulResult())
+                model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content);
+            else
+                model.Categories = new List<CategoryListDto>();
+
+            return View(model);
         }
-        public IActionResult AddProduct()
+        public async Task<IActionResult> AddProduct()
         {
-            //ProductViewModel model = new ProductViewModel();
-            //model.Categories = _categoryAction.GetCategories(true, true, false);
-            return View();
+            ProductViewModel model = new ProductViewModel();
+            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            if (result2.IsSuccessfulResult())
+                model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content);
+            else
+                model.Categories = new List<CategoryListDto>();
+            return View(model);
         }
-        public IActionResult SubmitAddProduct(Product product)
+        public async Task<IActionResult> SubmitAddProduct(CreateProductDto product)
         {
-            //product.CreateDate = DateTime.Now;
-            //product.NidProduct = Guid.NewGuid();
-            //product.State = 0;
-            //product.UserId = Guid.Parse(User.Claims.FirstOrDefault(p => p.Type == "NidUser").Value);
-            //if (_productAction.Add<Product>(product))
-            //    TempData["ProductSuccess"] = "محصول با موفقیت ایجاد گردید";
-            //else
-            //    TempData["ProductError"] = "خطا در ایجاد محصول.لطفا مجددا امتحان کنید";
+            product.UserId = Guid.Parse("7E84B450-03E5-4969-BDF7-CB4EEB4FEBA1");
+            var content = new StringContent(JsonConvert.SerializeObject(product),Encoding.UTF8,"application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Post,$"{BaseAddress}/Product/CreateProduct",content);
+            if(result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["ProductSuccess"] = "محصول با موفقیت ایجاد گردید";
+                else
+                    TempData["ProductError"] = "خطا در ایجاد محصول.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["ProductError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
             return RedirectToAction("Products");
         }
-        public IActionResult EditProduct(Guid NidProduct)
+        public async Task<IActionResult> EditProduct(Guid NidProduct)
         {
-            //ProductViewModel productViewModel = new ProductViewModel();
-            //productViewModel.Product = _productAction.GetProduct(NidProduct);
-            //productViewModel.Categories = _categoryAction.GetCategories(true, true, false);
+            ProductViewModel model = new ProductViewModel();
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProduct/{NidProduct}");
+            if (result.IsSuccessfulResult())
+                model.Product = JsonConvert.DeserializeObject<ProductDto>(result.Content) ?? new ProductDto();
+            else
+                model.Product = new ProductDto();
+            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            if (result2.IsSuccessfulResult())
+                model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content) ?? new List<CategoryListDto>();
+            else
+                model.Categories = new List<CategoryListDto>();
+            var result3 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidProduct}");
+            if (result2.IsSuccessfulResult())
+                model.Files = JsonConvert.DeserializeObject<List<FileListDto>>(result3.Content) ?? new List<FileListDto>();
+            else
+                model.Categories = new List<CategoryListDto>();
             //productViewModel.Files = _commonAction.GetFiles(NidProduct);
-            return View();
+            return View(model);
         }
-        public IActionResult SubmitEditProduct(Product product)
+        public async Task<IActionResult> SubmitEditProduct(UpdateProductDto product)
         {
-            //product.LastModified = DateTime.Now;
-            //if (_productAction.UpdateProduct(product))
-            //    TempData["ProductSuccess"] = "محصول با موفقیت ویرایش گردید";
-            //else
-            //    TempData["ProductError"] = "خطا در ویرایش محصول.لطفا مجددا امتحان کنید";
+            var content = new StringContent(JsonConvert.SerializeObject(product),Encoding.UTF8,"application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Product/UpdateProduct",content);
+            if(result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["ProductSuccess"] = "محصول با موفقیت ویرایش گردید";
+                else
+                    TempData["ProductError"] = "خطا در ویرایش محصول.لطفا مجددا امتحان کنید";
+            }
+            else
+            {
+                TempData["ProductError"] = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید.";
+            }
             return RedirectToAction("Products");
         }
-        public IActionResult ProductDetail(Guid NidProduct)
+        public async Task<IActionResult> ProductDetail(Guid NidProduct)
         {
-            //var product = _productAction.GetProduct(NidProduct, true);
-            //if (product.NidProduct != Guid.Empty)
-            //    return Json(new { success = true, html = Helpers.RenderViewToString.RenderViewAsync(this, "_ProductDetail", product, true) });
-            //else
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductDetail/{NidProduct}");
+            if (result.IsSuccessfulResult())
+                return Json(new { success = true, html = RenderViewToString.RenderViewAsync(this, "_ProductDetail", JsonConvert.DeserializeObject<DetailProductDto>(result.Content), true) });
+            else
                 return Json(new { success = false });
         }
-        public IActionResult DeleteProduct(Guid NidProduct)
+        public async Task<IActionResult> DeleteProduct(Guid NidProduct)
         {
-            //var product = _productAction.GetProduct(NidProduct);
-            //if (product.NidProduct != Guid.Empty)
-            //{
-            //    product.State = 2;
-            //    product.LastModified = DateTime.Now;
-            //    if (_productAction.UpdateProduct(product))
-            //        return Json(new { success = true, message = "محصول با موفقیت حذف گردید" });
-            //    else
-            //        return Json(new { success = false, message = "خطا در حذف محصول.لطفا مجددا امتحان کنید" });
-            //}
-            //else
-            //{
-            //    return Json(new { success = false, message = "محصول مورد نظر یافت نشد" });
-            //}
-            return Json("");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Product/DeleteProduct/{NidProduct}");
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    return Json(new { success = true, message = "محصول با موفقیت حذف گردید" });
+                else
+                    return Json(new { success = false, message = "خطا در حذف محصول.لطفا مجددا امتحان کنید" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "خطایی در برنامه رخ داده است.لطفا با پشتیبان تماس بگیرید." });
+            }
         }
-        public IActionResult ProductFilter(int Index, string FilterText)
+        public async Task<IActionResult> ProductFilter(int Index, string FilterText)
         {
-            List<Product> products = new List<Product>();
+            List<ProductListDto> products = new List<ProductListDto>();
             bool success = true;
-            //switch (Index)
-            //{
-            //    case 1:
-            //        products = _productAction.GetProductsByCategory(Guid.Parse(FilterText.Split(',')[0]), Guid.Parse(FilterText.Split(',')[1]), Guid.Parse(FilterText.Split(',')[2])).ToList();
-            //        break;
-            //    case 2:
-            //        products = _productAction.GetProductsByCreateDate(DateTime.Parse(FilterText.Split(',')[0]).Date, DateTime.Parse(FilterText.Split(',')[1]).Date).ToList();
-            //        break;
-            //    case 3:
-            //        products = _productAction.GetProductsByPriceRange(decimal.Parse(FilterText.Split(',')[0]), decimal.Parse(FilterText.Split(',')[1])).ToList();
-            //        break;
-            //    case 4:
-            //        products = _productAction.GetProductsByAvailablity(int.Parse(FilterText)).ToList();
-            //        break;
-            //}
+            var filters = new ProductFilters();
+            filters.FilterType = Index;
+            switch (Index)
+            {
+                case 1:
+                    filters.CategoryId = Guid.Parse(FilterText.Split(',')[0]);
+                    filters.TypeId = Guid.Parse(FilterText.Split(',')[1]);
+                    filters.BrandId = Guid.Parse(FilterText.Split(',')[2]);
+                    break;
+                case 2:
+                    filters.FromDate = DateTime.Parse(FilterText.Split(',')[0]).Date;
+                    filters.ToDate = DateTime.Parse(FilterText.Split(',')[1]).Date;
+                    break;
+                case 3:
+                    filters.FromPrice = decimal.Parse(FilterText.Split(',')[0]);
+                    filters.ToPrice = decimal.Parse(FilterText.Split(',')[1]);
+                    break;
+                case 4:
+                    filters.AvailableCount = int.Parse(FilterText);
+                    break;
+            }
+            var content = new StringContent(JsonConvert.SerializeObject(filters),Encoding.UTF8,"application/json");
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Product/GetFilteredProduct",content);
+            success = result.IsSuccessfulResult();
+            products = JsonConvert.DeserializeObject<List<ProductListDto>>(result.Content) ?? new List<ProductListDto>();
             return Json(new { success = success, html = RenderViewToString.RenderViewAsync(this, "_FilteredProduct", products, true) });
         }
+        //file section
+        public async Task<IActionResult> UploadFile(IFormCollection data, IList<IFormFile> files)
+        {
+            IConfigurationRoot configuration = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("appsettings.json").Build();
+            List<string[]> pics = new List<string[]>();
+            bool status = true;
+            foreach (var file in data.Files)
+            {
+                if (file.Length > 0)
+                {
+                    string newFileName = "Image_" + DateTime.Now.ToShortDateString().Replace('/', '_') + "_" + DateTime.Now.ToString("HH:mm:ss").Replace(':', '_') + "_" + 
+                    file.FileName.Split('.')[0].Replace(' ', '_') + ".webp";
+                    string filebase64 = "";
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyTo(ms);
+                        filebase64 = Convert.ToBase64String(ms.ToArray());
+                    }
+                    var newCreateFile = new CreateFileDto() { RelateType = byte.Parse(data["fileType"].ToString()) , RelateId = Guid.Parse(data["RelateId"].ToString()),FileName = newFileName, 
+                    FilePath = Path.Combine(configuration.GetSection("ImagesPathRoot").Value, newFileName), Width = int.Parse(data["ImageWidth"].ToString()), 
+                    FileUrl = $"{configuration.GetSection("ImageUrlRoot").Value}{newFileName}", Height = int.Parse(data["ImageHeight"].ToString()), TheFile = filebase64};
+                    var content = new StringContent(JsonConvert.SerializeObject(newCreateFile), Encoding.UTF8, "application/json");
+                    var addresult = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/File/CreateFile", content);
+                    if (!addresult.IsSuccessfulResult())
+                        status = false;
+                }
+            }
+            if(status)
+            {
+                var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{Guid.Parse(data["RelateId"].ToString())}");
+                if (result.IsSuccessfulResult())
+                {
+                    var gfiles = JsonConvert.DeserializeObject<List<FileListDto>>(result.Content) ?? new List<FileListDto>();
+                    foreach (var gfile in gfiles.Where(p => p.RelateType == byte.Parse(data["fileType"].ToString())))
+                    {
+                        pics.Add(new string[3] { gfile.Id.ToString(), gfile.FileUrl, gfile.FileName });
+                    }
+                    string tmpPic = await RenderViewToString.RenderViewAsync(this, "_FileDemo", pics, true);
+                    return Json(new { success = true, pics = tmpPic });
+                }
+                else
+                    return Json(new { success = true });
+            }else
+                return Json(new { success = false });
+        }
+        public async Task<IActionResult> DeleteFile(Guid NidFile)
+        {
+            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/File/DeleteFile/{NidFile}");
+            if(result.IsSuccessfulResult())
+            {
+                if(JsonConvert.DeserializeObject<bool>(result.Content))
+                    return Json(new { success = true });
+                else
+                    return Json(new { success = false });
+            }else
+                return Json(new { success = false });
+        }
+        //purchase section
         public IActionResult Orders()
         {
             //var orders = _productAction.GetOrders();
@@ -275,6 +452,7 @@ namespace BackendUI.Controllers
             //    return Json(new { success = false, message = "خطا در بروزرسانی مرسوله.لطفا مجددا امتحان کنید" });
             return Json("");
         }
+        //general section
         public IActionResult Comments()
         {
             //var comments = _productAction.GetComments();
@@ -327,48 +505,7 @@ namespace BackendUI.Controllers
             //        return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
             //}
             //else
-                return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
-        }
-        //general section
-        public async Task<IActionResult> UploadFile(IFormCollection data, IList<IFormFile> files)
-        {
-            //IConfigurationRoot configuration = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("appsettings.json").Build();
-            //List<string[]> pics = new List<string[]>();
-            //foreach (var file in data.Files)
-            //{
-            //    if (file.Length > 0)
-            //    {
-            //        string newFileName = "Image_" + DateTime.Now.ToShortDateString().Replace('/', '_') + "_" + DateTime.Now.ToString("HH:mm:ss").Replace(':', '_') + "_" + file.FileName.Split('.')[0].Replace(' ', '_') + ".webp";
-            //        string filePath = Path.Combine(configuration.GetSection("ImagesPathRoot").Value, newFileName);
-            //        if (Commons.SaveReducedImage(int.Parse(data["ImageWidth"].ToString()), int.Parse(data["ImageHeight"].ToString()), filePath, file))
-            //        {
-            //            var newFile = new Models.File() { NidFile = Guid.NewGuid(), CreateDate = DateTime.Now, RelateType = byte.Parse(data["fileType"].ToString()), FileName = newFileName, FileExtension = "webp", FilePath = filePath, FileSize = (int)(file.Length / 1024), FileUrl = $"{configuration.GetSection("ImageUrlRoot").Value}{newFileName}", Priority = 0, RelateId = Guid.Parse(data["RelateId"].ToString()) };
-            //            _commonAction.Add<Models.File>(newFile);
-            //        }
-            //    }
-            //}
-            //var gfiles = _commonAction.GetFiles(Guid.Parse(data["RelateId"].ToString()));
-            //foreach (var gfile in gfiles.Where(p => p.RelateType == byte.Parse(data["fileType"].ToString())))
-            //{
-            //    pics.Add(new string[3] { gfile.NidFile.ToString(), gfile.FileUrl, gfile.FileName });
-            //}
-            //string tmpPic = await RenderViewToString.RenderViewAsync(this, "_FileDemo", pics, true);
-            //return Json(new { success = true, pics = tmpPic });
-            return Json("");
-        }
-        public IActionResult DeleteFile(Guid NidFile)
-        {
-            //var file = _commonAction.GetFile(NidFile);
-            //if (file.NidFile != Guid.Empty)
-            //{
-            //    System.IO.File.Delete(file.FilePath);
-            //    if (_commonAction.Remove<Models.File>(file))
-            //        return Json(new { success = true });
-            //    else
-            //        return Json(new { success = false });
-            //}
-            //else
-                return Json(new { success = false });
+            return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
         }
         public IActionResult Settings()
         {
@@ -414,13 +551,13 @@ namespace BackendUI.Controllers
         }
         public IActionResult StatusCodes(int status)
         {
-            return View("HttpError", status);
+            return View(status);
         }
         //less importants
         public IActionResult Index()
         {
             //var res = _commonAction.GetIndexPageValues();
-            return View();
+            return View(new string[5]{ "","", "", "", "" });
         }
         public IActionResult Charts()
         {

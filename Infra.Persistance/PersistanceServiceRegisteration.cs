@@ -1,4 +1,5 @@
 ﻿using Application.Persistance.Contracts;
+using Application.Persistance.Contracts.Common;
 using Infra.Persistance.Context;
 using Infra.Persistance.Repository;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,10 @@ namespace Infra.Persistance
             services.AddDbContext<AudioShopDbContext>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IFileRepository, FileRepository>();
+            services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+            services.AddScoped<IGeneralRepository, GeneralRepository>();
+            services.AddScoped<IBaseRepository, BaseRepository>();
             return services;
         }
     }

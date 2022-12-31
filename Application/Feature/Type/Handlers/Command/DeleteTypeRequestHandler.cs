@@ -31,7 +31,7 @@ namespace Application.Feature.Type.Handlers.Command
             {
                 tmpType.State = 1;
                 var type = _mapper.Map<Domain.Type>(tmpType);
-                return await _categoryRepository.UpdateType(type);
+                return await _categoryRepository.Update(type);
             }
         }
     }

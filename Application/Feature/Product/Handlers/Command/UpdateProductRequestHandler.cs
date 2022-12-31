@@ -28,7 +28,7 @@ namespace Application.Feature.Product.Handlers.Command
             else
             {
                 _mapper.Map(request.product, product);
-                return await _productRepository.UpdateProduct(product);
+                return await _productRepository.Update(product);
             }
         }
     }

@@ -28,7 +28,7 @@ namespace Application.Feature.Brand.Handlers.Command
             else
             {
                 _mapper.Map(request.brand, brand);
-                return await _categoryRepository.UpdateBrand(brand);
+                return await _categoryRepository.Update(brand);
             }
         }
     }

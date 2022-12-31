@@ -1,6 +1,7 @@
 ﻿using Application.DTO.Brand;
 using Application.DTO.Category;
 using Application.DTO.Type;
+using Application.Persistance.Contracts.Common;
 using Domain;
 using System;
 using System.Collections.Generic;
@@ -11,22 +12,16 @@ using System.Threading.Tasks;
 
 namespace Application.Persistance.Contracts
 {
-    public interface ICategoryRepository
+    public interface ICategoryRepository : IBaseRepository
     {
-        Task<bool> CreateBrand(Brand item);
-        Task<bool> CreateCategory(Category item);
-        Task<bool> CreateType(Domain.Type item);
-        Task<bool> UpdateBrand(Brand item);
-        Task<bool> UpdateCategory(Category item);
-        Task<bool> UpdateType(Domain.Type item);
         Task<bool> DeleteBrand(Guid Id);
         Task<bool> DeleteCategory(Guid Id);
         Task<bool> DeleteType(Guid  Id);
-        Task<Category> GetCategory(Guid NidCategory);
+        Task<Category> GetCategory(Guid NidCategory, bool IncludeProducts = false);
+        Task<Category> GetCategoryByTitle(string Title, bool IncludeProducts = false);
         Task<Brand> GetBrand(Guid NidBrand);
         Task<Domain.Type> GetType(Guid NidType);
-        // to process actions
-        Task<IEnumerable<Category>> GetCategories(int State = 0);
+        Task<IEnumerable<Category>> GetCategories(int State = 0,bool IncludeProducts = false);
         Task<IEnumerable<Category>> GetAllCategories();
     }
 }

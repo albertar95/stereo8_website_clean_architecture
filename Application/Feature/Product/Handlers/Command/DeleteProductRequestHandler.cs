@@ -30,7 +30,7 @@ namespace Application.Feature.Product.Handlers.Command
             {
                 tmpProduct.State = 1;
                 var product = _mapper.Map<Domain.Product>(tmpProduct);
-                return await _productRepository.UpdateProduct(product);
+                return await _productRepository.Update(product);
             }
         }
     }

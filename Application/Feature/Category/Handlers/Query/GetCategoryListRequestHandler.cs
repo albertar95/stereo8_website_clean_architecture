@@ -25,7 +25,7 @@ namespace Application.Feature.Category.Handlers.Query
 
         public async Task<List<CategoryListDto>> Handle(GetCategoryListRequest request, CancellationToken cancellationToken)
         {
-            var categories = await _categoryRepository.GetCategories(request.State);
+            var categories = await _categoryRepository.GetCategories(request.State,request.IncludeProduct);
             return _mapper.Map<List<Domain.Category>, List<CategoryListDto>>(categories.ToList());
         }
     }

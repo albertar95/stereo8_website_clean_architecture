@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Infra.ImageManager\Infra.ImageManager.csproj" />
     <ProjectReference Include="..\Infra.Persistance\Infra.Persistance.csproj" />
   </ItemGroup>
 

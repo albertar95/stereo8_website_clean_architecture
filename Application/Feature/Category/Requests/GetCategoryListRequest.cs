@@ -11,5 +11,6 @@ namespace Application.Feature.Category.Requests
     public class GetCategoryListRequest : IRequest<List<CategoryListDto>>
     {
         public int State { get; set; }
+        public bool IncludeProduct { get; set; } = false!;
     }
 }

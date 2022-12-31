@@ -1,12 +1,14 @@
-﻿using Domain;
+﻿using Application.DTO.Category;
+using Application.DTO.File;
+using Application.DTO.Product;
 
 namespace BackendUI.ViewModels
 {
     public class ProductViewModel
     {
-        public Product Product { get; set; } = new Product()!;
-        public IEnumerable<Category> Categories { get; set; } = new List<Category>()!;
-        public IEnumerable<Product> Products { get; set; } = new List<Product>()!;
-        public IEnumerable<Domain.File> Files { get; set; } = new List<Domain.File>()!;
+        public ProductDto Product { get; set; } = new ProductDto()!;
+        public IEnumerable<CategoryListDto> Categories { get; set; } = new List<CategoryListDto>()!;
+        public IEnumerable<ProductListDto> Products { get; set; } = new List<ProductListDto>()!;
+        public IEnumerable<FileListDto> Files { get; set; } = new List<FileListDto>()!;
     }
 }

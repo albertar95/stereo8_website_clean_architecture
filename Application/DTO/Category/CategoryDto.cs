@@ -1,4 +1,5 @@
 ﻿using Application.DTO.Brand;
+using Application.DTO.Product;
 using Application.DTO.Type;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,8 @@ namespace Application.DTO.Category
         public string CategoryName { get; set; } = null!;
         public string? Description { get; set; }
         public string? Keywords { get; set; }
-        public ICollection<BrandDto> Brands { get; } = new List<BrandDto>();
-        public ICollection<TypeDto> Types { get; } = new List<TypeDto>();
+        public ICollection<BrandListDto> Brands { get; } = new List<BrandListDto>();
+        public ICollection<TypeListDto> Types { get; } = new List<TypeListDto>();
+        public ICollection<ProductListDto> Products { get; } = new List<ProductListDto>();
     }
 }

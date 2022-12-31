@@ -32,7 +32,7 @@ namespace Application.Feature.Category.Handlers.Command
             {
                 tmpCategory.State = 1;
                 var category = _mapper.Map<Domain.Category>(tmpCategory);
-                return await _categoryRepository.UpdateCategory(category);
+                return await _categoryRepository.Update(category);
             }
         }
     }

@@ -24,7 +24,7 @@ namespace Application.Feature.Brand.Handlers.Command
         public Task<bool> Handle(CreateBrandRequest request, CancellationToken cancellationToken)
         {
             var brand = _mapper.Map<Domain.Brand>(request.brand);
-            return _categoryRepository.CreateBrand(brand);
+            return _categoryRepository.Create(brand);
         }
     }
 }

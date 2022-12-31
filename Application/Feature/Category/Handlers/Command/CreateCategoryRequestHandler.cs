@@ -25,7 +25,7 @@ namespace Application.Feature.Category.Handlers.Command
         public Task<bool> Handle(CreateCategoryRequest request, CancellationToken cancellationToken)
         {
             var category = _mapper.Map<Domain.Category>(request.category);
-            return _categoryRepository.CreateCategory(category);
+            return _categoryRepository.Create(category);
         }
     }
 }

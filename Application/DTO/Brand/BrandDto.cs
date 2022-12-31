@@ -12,5 +12,7 @@ namespace Application.DTO.Brand
         public int State { get; set; }
         public string BrandName { get; set; } = null!;
         public Guid CategoryId { get; set; }
+        public string? Description { get; set; }
+        public string? Keywords { get; set; }
     }
 }

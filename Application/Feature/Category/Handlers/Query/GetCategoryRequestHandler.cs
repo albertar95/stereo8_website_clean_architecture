@@ -1,4 +1,5 @@
-﻿using Application.Feature.Category.Requests;
+﻿using Application.DTO.Category;
+using Application.Feature.Category.Requests;
 using Application.Persistance.Contracts;
 using AutoMapper;
 using MediatR;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Application.Feature.Category.Handlers.Query
 {
-    public class GetCategoryRequestHandler : IRequestHandler<GetCategoryRequest,Domain.Category>
+    public class GetCategoryRequestHandler : IRequestHandler<GetCategoryRequest,CategoryDto>
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
@@ -21,9 +22,9 @@ namespace Application.Feature.Category.Handlers.Query
             _mapper = mapper;
         }
 
-        public Task<Domain.Category> Handle(GetCategoryRequest request, CancellationToken cancellationToken)
+        public async Task<CategoryDto> Handle(GetCategoryRequest request, CancellationToken cancellationToken)
         {
-            return _categoryRepository.GetCategory(request.Id);
+            return _mapper.Map<CategoryDto>(await _categoryRepository.GetCategory(request.Id,request.IncludeProduct));
         }
     }
 }

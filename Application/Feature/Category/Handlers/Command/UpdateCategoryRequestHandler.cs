@@ -29,7 +29,7 @@ namespace Application.Feature.Category.Handlers.Command
             else
             {
                 _mapper.Map(request.category, category);
-                return await _categoryRepository.UpdateCategory(category);
+                return await _categoryRepository.Update(category);
             }
         }
     }

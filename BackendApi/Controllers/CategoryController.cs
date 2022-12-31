@@ -39,9 +39,14 @@ namespace BackendApi.Controllers
             return Ok(await _mediator.Send(new DeleteCategoryRequest() { Id = id }));
         }
         [HttpGet("GetCategoryList")]
-        public async Task<IActionResult> GetCategoryList([FromQuery]int state = 0) 
+        public async Task<IActionResult> GetCategoryList([FromQuery] bool includeProduct = false, [FromQuery]int state = 0) 
         {
-            return Ok(await _mediator.Send(new GetCategoryListRequest(){ State = state}));
+            return Ok(await _mediator.Send(new GetCategoryListRequest(){ State = state, IncludeProduct = includeProduct }));
+        }
+        [HttpGet("GetCategory/{id}")]
+        public async Task<IActionResult> GetCategory(Guid id, [FromQuery] bool includeProduct = false)
+        {
+            return Ok(await _mediator.Send(new GetCategoryRequest() { Id = id, IncludeProduct = includeProduct }));
         }
         //brand section
         [HttpPost("CreateBrand")]
@@ -59,6 +64,11 @@ namespace BackendApi.Controllers
         {
             return Ok(await _mediator.Send(new DeleteBrandRequest() { Id = id }));
         }
+        [HttpGet("GetBrand/{id}")]
+        public async Task<IActionResult> GetBrand(Guid id)
+        {
+            return Ok(await _mediator.Send(new GetBrandRequest() { Id = id }));
+        }
         //type section
         [HttpPost("CreateType")]
         public async Task<IActionResult> CreateType([FromBody] CreateTypeDto typeDto)
@@ -75,21 +85,10 @@ namespace BackendApi.Controllers
         {
             return Ok(await _mediator.Send(new DeleteTypeRequest() { Id = id }));
         }
-        //product section
-        [HttpPost("CreateProduct")]
-        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto productDto)
+        [HttpGet("GetType/{id}")]
+        public async Task<IActionResult> GetType(Guid id)
         {
-            return Ok(await _mediator.Send(new CreateProductRequest() { product = productDto }));
-        }
-        [HttpPatch("UpdateProduct")]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductDto productDto)
-        {
-            return Ok(await _mediator.Send(new UpdateProductRequest() { product = productDto }));
-        }
-        [HttpDelete("DeleteProduct/{id}")]
-        public async Task<IActionResult> DeleteProduct(Guid id)
-        {
-            return Ok(await _mediator.Send(new DeleteProductRequest() { Id = id }));
+            return Ok(await _mediator.Send(new GetTypeRequest() { Id = id }));
         }
     }
 }

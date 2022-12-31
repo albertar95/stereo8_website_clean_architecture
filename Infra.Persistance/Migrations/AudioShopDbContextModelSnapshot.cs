@@ -73,7 +73,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -96,13 +98,14 @@ namespace Infra.Persistance.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Carts");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Cart");
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("Domain.Category", b =>
@@ -154,7 +157,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -177,13 +182,14 @@ namespace Infra.Persistance.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Comments");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comment");
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Domain.Favorite", b =>
@@ -193,7 +199,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -213,13 +221,74 @@ namespace Infra.Persistance.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Favorites");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorite");
+                    b.ToTable("Favorites");
+                });
+
+            modelBuilder.Entity("Domain.File", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("FileSize")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PersianCreateDate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PersianLastModified")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Priority")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("RelateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("RelateType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Files");
+
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("Domain.Order", b =>
@@ -235,7 +304,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -282,11 +353,12 @@ namespace Infra.Persistance.Migrations
                     b.Property<decimal?>("ZipCode")
                         .HasColumnType("decimal(12,0)");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Orders");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Order");
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Domain.OrderDetail", b =>
@@ -296,7 +368,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -319,13 +393,14 @@ namespace Infra.Persistance.Migrations
                     b.Property<int>("State")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_OrderDetails");
 
                     b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetail");
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("Domain.Product", b =>
@@ -416,6 +491,43 @@ namespace Infra.Persistance.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("Domain.Setting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PersianCreateDate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PersianLastModified")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SettingAttribute")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SettingValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Settings");
+
+                    b.ToTable("Settings");
+                });
+
             modelBuilder.Entity("Domain.Ship", b =>
                 {
                     b.Property<Guid>("Id")
@@ -427,7 +539,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
@@ -459,11 +573,41 @@ namespace Infra.Persistance.Migrations
                     b.Property<decimal>("ZipCode")
                         .HasColumnType("decimal(12,0)");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Ships");
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Ship");
+                    b.ToTable("Ships");
+                });
+
+            modelBuilder.Entity("Domain.ShipPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FromWeight")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("InnerState")
+                        .HasColumnType("decimal(12,0)");
+
+                    b.Property<decimal>("NeighborState")
+                        .HasColumnType("decimal(12,0)");
+
+                    b.Property<decimal>("OtherState")
+                        .HasColumnType("decimal(12,0)");
+
+                    b.Property<int>("ToWeight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK_ShipPrices");
+
+                    b.ToTable("ShipPrices");
                 });
 
             modelBuilder.Entity("Domain.Type", b =>
@@ -520,7 +664,9 @@ namespace Infra.Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -565,9 +711,10 @@ namespace Infra.Persistance.Migrations
                     b.Property<decimal?>("ZipCode")
                         .HasColumnType("decimal(12,0)");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_Users");
 
-                    b.ToTable("User");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Domain.Brand", b =>
@@ -592,7 +739,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.User", "User")
                         .WithMany("Carts")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -611,7 +758,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -630,7 +777,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.User", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -643,7 +790,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -654,7 +801,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Domain.Product", "Product")
@@ -691,7 +838,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.User", "User")
                         .WithMany("Products")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Brand");
@@ -708,7 +855,7 @@ namespace Infra.Persistance.Migrations
                     b.HasOne("Domain.Order", "Order")
                         .WithMany("Ships")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Order");

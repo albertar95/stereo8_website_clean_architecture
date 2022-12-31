@@ -15,51 +15,13 @@ using System.Threading.Tasks;
 
 namespace Infra.Persistance.Repository
 {
-    public class CategoryRepository : ICategoryRepository
+    public class CategoryRepository : BaseRepository, ICategoryRepository
     {
         private readonly AudioShopDbContext _context;
 
-        public CategoryRepository(AudioShopDbContext context)
+        public CategoryRepository(AudioShopDbContext context) : base(context)
         {
             _context = context;
-        }
-        public async Task<bool> CreateBrand(Brand item)
-        {
-            item.Id = Guid.NewGuid();
-            item.State = 0;
-            item.CreateDate = DateTime.Now;
-            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
-            _context.Brands.Add(item);
-            if(await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
-        }
-
-        public async Task<bool> CreateCategory(Category item)
-        {
-            item.Id = Guid.NewGuid();
-            item.State = 0;
-            item.CreateDate = DateTime.Now;
-            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
-            _context.Categories.Add(item);
-            if (await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
-        }
-
-        public async Task<bool> CreateType(Domain.Type item)
-        {
-            item.Id = Guid.NewGuid();
-            item.State = 0;
-            item.CreateDate = DateTime.Now;
-            item.PersianCreateDate = Commons.GetPersianDate(DateTime.Now);
-            _context.Types.Add(item);
-            if (await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
         }
 
         public async Task<bool> DeleteBrand(Guid Id)
@@ -112,7 +74,7 @@ namespace Infra.Persistance.Repository
 
         public async Task<IEnumerable<Category>> GetAllCategories()
         {
-            return await _context.Categories.ToListAsync();
+            return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).ToListAsync();
         }
 
         public async Task<Brand> GetBrand(Guid NidBrand)
@@ -120,52 +82,33 @@ namespace Infra.Persistance.Repository
             return await _context.Brands.FirstOrDefaultAsync(b => b.Id == NidBrand) ?? null!;
         }
 
-        public async Task<IEnumerable<Category>> GetCategories(int State = 0)
+        public async Task<IEnumerable<Category>> GetCategories(int State = 0, bool IncludeProducts = false)
         {
-            return await _context.Categories.Where(p => p.State == State).ToListAsync();
+            if(IncludeProducts)
+                return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).Include(p => p.Products.Where(q => q.State == 0)).Where(p => p.State == State).ToListAsync();
+            else
+                return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).Where(p => p.State == State).ToListAsync();
         }
 
-        public async Task<Category> GetCategory(Guid NidCategory)
+        public async Task<Category> GetCategory(Guid NidCategory, bool IncludeProducts = false)
         {
-            return await _context.Categories.FirstOrDefaultAsync(b => b.Id == NidCategory) ?? null!;
+            if(IncludeProducts)
+                return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).Include(p => p.Products.Where(q => q.State == 0)).FirstOrDefaultAsync(b => b.Id == NidCategory) ?? null!;
+            else
+                return await _context.Categories.FirstOrDefaultAsync(b => b.Id == NidCategory) ?? null!;
+        }
+
+        public async Task<Category> GetCategoryByTitle(string Title, bool IncludeProducts = false)
+        {
+            if (IncludeProducts)
+                return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).Include(p => p.Products.Where(q => q.State == 0)).FirstOrDefaultAsync(b => b.CategoryName == Title && b.State == 0) ?? null!;
+            else
+                return await _context.Categories.Include(p => p.Brands.Where(q => q.State == 0)).Include(p => p.Types.Where(q => q.State == 0)).FirstOrDefaultAsync(b => b.CategoryName == Title && b.State == 0) ?? null!;
         }
 
         public async Task<Domain.Type> GetType(Guid NidType)
         {
             return await _context.Types.FirstOrDefaultAsync(b => b.Id == NidType) ?? null!;
-        }
-
-        public async Task<bool> UpdateBrand(Brand item)
-        {
-            item.LastModified = DateTime.Now;
-            item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
-            _context.Entry(item).State = EntityState.Modified;
-            if (await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
-        }
-
-        public async Task<bool> UpdateCategory(Category item)
-        {
-            item.LastModified = DateTime.Now;
-            _context.Entry(item).State = EntityState.Modified;
-            item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
-            if (await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
-        }
-
-        public async Task<bool> UpdateType(Domain.Type item)
-        {
-            item.LastModified = DateTime.Now;
-            item.PersianLastModified = Commons.GetPersianDate(DateTime.Now);
-            _context.Entry(item).State = EntityState.Modified;
-            if (await _context.SaveChangesAsync() == 1)
-                return true;
-            else
-                return false;
         }
     }
 }

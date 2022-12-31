@@ -28,7 +28,7 @@ namespace Application.Feature.Type.Handlers.Command
             else
             {
                 _mapper.Map(request.type, type);
-                return await _categoryRepository.UpdateType(type);
+                return await _categoryRepository.Update(type);
             }
         }
     }

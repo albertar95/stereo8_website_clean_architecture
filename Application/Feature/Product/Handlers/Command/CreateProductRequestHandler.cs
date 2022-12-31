@@ -24,7 +24,7 @@ namespace Application.Feature.Product.Handlers.Command
         public Task<bool> Handle(CreateProductRequest request, CancellationToken cancellationToken)
         {
             var product = _mapper.Map<Domain.Product>(request.product);
-            return _productRepository.CreateProduct(product);
+            return _productRepository.Create(product);
         }
     }
 }

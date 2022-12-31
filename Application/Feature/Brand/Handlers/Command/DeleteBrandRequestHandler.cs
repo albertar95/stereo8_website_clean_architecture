@@ -31,7 +31,7 @@ namespace Application.Feature.Brand.Handlers.Command
             {
                 tmpBrand.State = 1;
                 var brand = _mapper.Map<Domain.Brand>(tmpBrand);
-                return await _categoryRepository.UpdateBrand(brand);
+                return await _categoryRepository.Update(brand);
             }
         }
     }

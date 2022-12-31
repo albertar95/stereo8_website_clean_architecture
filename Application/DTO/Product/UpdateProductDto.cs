@@ -9,6 +9,7 @@ namespace Application.DTO.Product
     public class UpdateProductDto
     {
         public Guid Id { get; set; }
+        public int State { get; set; }
         public string ProductName { get; set; } = null!;
         public Guid CategoryId { get; set; }
         public Guid BrandId { get; set; }
