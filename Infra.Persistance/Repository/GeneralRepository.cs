@@ -74,16 +74,16 @@ namespace Infra.Persistance.Repository
             }
         }
 
-        public string[] GetIndexPageValues()
+        public async Task<string[]> GetIndexPageValues()
         {
             string[] result = new string[4];
-            result[0] = _context.Products.Count(p => p.State == 0).ToString();
+            result[0] =  _context.Products.Count(p => p.State == 0).ToString();
             if (_context.Orders.Any())
-                result[1] = String.Format("{0:n0} تومان", _context.Orders.Where(p => p.State == 101 || p.State == 100).Sum(p => p.TotalPrice));
+                result[1] = String.Format("{0:n0} تومان", await _context.Orders.Where(p => p.State == 101 || p.State == 100).SumAsync(p => p.TotalPrice));
             else
                 result[1] = String.Format("{0:n0} تومان", 0);
             if (_context.Ships.Any())
-                result[2] = String.Format("{0}", ((_context.Ships.Count(p => p.State == 3)) / (_context.Ships.Count())) * 100);
+                result[2] = String.Format("{0}", ((await _context.Ships.CountAsync(p => p.State == 3)) / (await _context.Ships.CountAsync())) * 100);
             else
                 result[2] = String.Format("{0}", 0);
             result[3] = _context.Comments.Count(p => p.State == 0).ToString();

@@ -60,13 +60,14 @@ namespace Application.Mapper
             //comment
             CreateMap<Comment, CreateCommentDto>();
             CreateMap<CreateCommentDto, Comment>().BeforeMap((c, b) => { b.Id = Guid.NewGuid(); b.CreateDate = DateTime.Now; b.PersianCreateDate = Commons.GetPersianDate(b.CreateDate); b.State = 0; });
-            CreateMap<Comment, CommentListDto>().ForMember("FirstName", m => m.MapFrom(x => x.User.FirstName)).ForMember("LastName", m => m.MapFrom(x => x.User.LastName)).ReverseMap();
+            CreateMap<Comment, CommentListDto>().ForMember("FirstName", m => m.MapFrom(x => x.User.FirstName)).ForMember("LastName", m => m.MapFrom(x => x.User.LastName)).ForMember("Username", m => m.MapFrom(x => x.User.Username)).ReverseMap();
             //cart
             CreateMap<Cart, CreateCartDto>();
             CreateMap<CreateCartDto, Cart>().BeforeMap((c, b) => { b.Id = Guid.NewGuid(); b.CreateDate = DateTime.Now; b.PersianCreateDate = Commons.GetPersianDate(b.CreateDate); b.State = 0; });
             CreateMap<Cart, UpdateCartDto>();
             CreateMap<UpdateCartDto, Cart>().BeforeMap((u, b) => { b.LastModified = DateTime.Now; b.PersianLastModified = Commons.GetPersianDate(b.LastModified ?? DateTime.Now); });
             CreateMap<Cart, CartListDto>().ForMember("ProductName", m => m.MapFrom(x => x.Product.ProductName)).ForMember("ProductPrice", m => m.MapFrom(x => x.Product.Price)).ForMember("AvailableCount", m => m.MapFrom(x => x.Product.AvailableCount)).ReverseMap();
+            CreateMap<Cart, CartDto>().ReverseMap();
             //fav
             CreateMap<Favorite, CreateFavoriteDto>();
             CreateMap<CreateFavoriteDto, Favorite>().BeforeMap((c, b) => { b.Id = Guid.NewGuid(); b.CreateDate = DateTime.Now; b.PersianCreateDate = Commons.GetPersianDate(b.CreateDate); b.State = 0; });

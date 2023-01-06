@@ -1,4 +1,4 @@
-﻿@model Tuple<IEnumerable<Domain.Ship>,byte>
+﻿@model Tuple<List<Application.DTO.Ship.ShipListDto>,byte>
 
 @{
     ViewData["Title"] = "مرسوله ها";
@@ -118,16 +118,16 @@
                                     @Html.DisplayFor(modelItem => item.PersianCreateDate)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.Order.User.FirstName)&nbsp;@Html.DisplayFor(modelItem => item.Order.User.LastName)
+                                    @Html.DisplayFor(modelItem => item.FirstName)&nbsp;@Html.DisplayFor(modelItem => item.LastName)
                                 </td>
                                 <td>
                                     @Html.DisplayFor(modelItem => item.ShipVia)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.Order.StateId)
+                                    @Html.DisplayFor(modelItem => item.StateId)
                                 </td>
                                 <td>
-                                    @Html.DisplayFor(modelItem => item.Order.CityId)
+                                    @Html.DisplayFor(modelItem => item.CityId)
                                 </td>
                                 <td>
                                     @String.Format("{0:n0} تومان", item.ShipPrice)

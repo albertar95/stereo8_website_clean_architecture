@@ -13,6 +13,7 @@ namespace Application.DTO.Comment
         public string? PersianCreateDate { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? Username { get; set; }
         public Guid ProductId { get; set; }
         public string? CommentText { get; set; }
         public byte Review { get; set; }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Domain.Comment>
+﻿@model List<Application.DTO.Comment.CommentListDto>
 @{
     ViewData["Title"] = "نظرات تایید شده";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -58,10 +58,10 @@
                     {
                         <tr id="@item.Id">
                             <td>
-                                @Html.DisplayFor(modelItem => item.CreateDate)
+                                @Html.DisplayFor(modelItem => item.PersianCreateDate)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.User.Username)
+                                @Html.DisplayFor(modelItem => item.Username)
                             </td>
                             <td>
                                 @Html.DisplayFor(modelItem => item.CommentText)

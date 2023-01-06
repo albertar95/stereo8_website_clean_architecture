@@ -1,4 +1,4 @@
-﻿using Application.DTO.Brand;
+﻿using Application.DTO.Comment;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,6 @@ namespace Application.Feature.Comment.Requests
 {
     public class CreateCommentRequest : IRequest<bool>
     {
-        public CreateBrandDto comment { get; set; }
+        public CreateCommentDto Comment { get; set; }
     }
 }

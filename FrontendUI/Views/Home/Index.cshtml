@@ -18,14 +18,14 @@
                     </div>
                     <div class="categories_menu_toggle">
                         <ul>
-                            @foreach (var sideCats in Model.SidebarCategories.OrderBy(p => p.CategoryName).Take(9))
+                            @foreach (var sideCats in Model.Categories.OrderBy(p => p.CategoryName).Take(9))
                             {
                                 <li><a href="@Url.Action("Category","Home",new { Title = sideCats.CategoryName.Replace(' ','_')})">@sideCats.CategoryName</a></li>
                             }
-                            @if (Model.SidebarCategories.Count() > 9)
+                            @if (Model.Categories.Count() > 9)
                             {
                                 <li><a href="#" id="more-btn"><i class="fa fa-plus" aria-hidden="true"></i> بیشتر</a></li>
-                                foreach (var sideCats in Model.SidebarCategories.OrderBy(p => p.CategoryName).Skip(9))
+                                foreach (var sideCats in Model.Categories.OrderBy(p => p.CategoryName).Skip(9))
                                 {
                                     <li class="hidden"><a href="@Url.Action("Category","Home",new { Title = sideCats.CategoryName.Replace(' ','_')})">@sideCats.CategoryName</a></li>
                                 }
@@ -185,13 +185,13 @@
                         @foreach (var cat in Model.SpecialProducts.GroupBy(p => p.CategoryId).OrderBy(x => x.Key).Select(q => q.Key).Take(1).ToList())
                         {
                             <li>
-                                <a class="active" data-toggle="tab" href="@string.Format("#{0}",cat)" role="tab" aria-controls="@cat" aria-selected="true">@Model.SidebarCategories.FirstOrDefault(p => p.Id == cat).CategoryName</a>
+                                <a class="active" data-toggle="tab" href="@string.Format("#{0}",cat)" role="tab" aria-controls="@cat" aria-selected="true">@Model.Categories.FirstOrDefault(p => p.Id == cat).CategoryName</a>
                             </li>
                         }
                         @foreach (var cat in Model.SpecialProducts.GroupBy(p => p.CategoryId).OrderBy(x => x.Key).Select(q => q.Key).Skip(1).ToList())
                         {
                             <li>
-                                <a data-toggle="tab" href="@string.Format("#{0}",cat)" role="tab" aria-controls="@cat" aria-selected="false">@Model.SidebarCategories.FirstOrDefault(p => p.Id == cat).CategoryName</a>
+                                <a data-toggle="tab" href="@string.Format("#{0}",cat)" role="tab" aria-controls="@cat" aria-selected="false">@Model.Categories.FirstOrDefault(p => p.Id == cat).CategoryName</a>
                             </li>
                         }
                     </ul>
@@ -405,10 +405,10 @@
                 </div>
                 <div class="featured_container">
                     <div class="featured_carousel featured_column3 owl-carousel">
-                        @for (var i = 0; i <= Model.SpecialCategories.Count() / 2; i++)
+                        @for (var i = 0; i <= Model.Categories.Count() / 2; i++)
                         {
                             <div class="single_items">
-                                @foreach (var cat in Model.SpecialCategories.OrderBy(p => p.CategoryName).Skip(i * 2).Take(2))
+                                @foreach (var cat in Model.Categories.OrderBy(p => p.CategoryName).Skip(i * 2).Take(2))
                                 {
                                     <div class="single_featured">
                                         <div class="featured_thumb">

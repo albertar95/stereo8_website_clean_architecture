@@ -1,12 +1,5 @@
 ﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @model FrontendUI.ViewModels.ProductViewModel
-@{
-    ViewData["Title"] = Model.Product.ProductName;
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Desc"] = Model.Product.Description;
-    ViewData["CUrl"] = string.Format("https://stereo8.ir{0}", Url.Action("Product", "Home", new { Title = Model.Product.ProductName.Replace(' ', '_') }));
-    ViewData["Typo"] = "product";
-}
 <!--breadcrumbs area start-->
 <div class="breadcrumbs_area">
     <div class="container">

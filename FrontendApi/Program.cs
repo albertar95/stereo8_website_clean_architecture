@@ -12,6 +12,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.ConfigurePersistanceService();
 builder.Services.ConfigureApplicationService();
+builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer", o => {
+    o.Authority = "http://localhost:8077";
+    o.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() { ValidateAudience = false };
+    o.RequireHttpsMetadata = false;
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,10 +28,11 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 var option = new RewriteOptions();
 option.AddRedirect("^$", "swagger");
 app.UseRewriter(option);
-app.UseHttpsRedirection();
-
+//app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseEndpoints(e => e.MapDefaultControllerRoute().RequireAuthorization());
 app.MapControllers();
 
 app.Run();

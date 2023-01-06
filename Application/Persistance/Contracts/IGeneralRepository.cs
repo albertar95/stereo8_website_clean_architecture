@@ -15,7 +15,7 @@ namespace Application.Persistance.Contracts
         Task<IEnumerable<Comment>> GetComments(int State = 0, int Pagesize = 100, int Skip = 0);
         Task<Domain.Setting> GetSetting(Guid NidSetting, byte State = 0);
         Task<Comment> GetComment(Guid NidComment);
-        string[] GetIndexPageValues();
+        Task<string[]> GetIndexPageValues();
         Task<bool> DeleteComment(Guid Id);
         Task<bool> DeleteSetting(Guid Id);
     }

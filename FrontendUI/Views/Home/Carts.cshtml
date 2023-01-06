@@ -49,15 +49,15 @@
                                             <td class="product_remove"><a href="#" onclick="ClearProductFromCart(event,'@crt.Id')"><i class="fa fa-trash-o"></i></a></td>
                                             @if (Model.Files.Any(p => p.RelateId == crt.ProductId && p.RelateType == 6))
                                             {
-                                                <td class="product_thumb"><a href="@Url.Action("Product","Home",new {Title = crt.Product.ProductName.Trim().Replace(' ','_')})"><img src="@Model.Files.FirstOrDefault(p => p.RelateId == crt.ProductId && p.RelateType == 6).FileUrl" alt="@crt.Product.ProductName.Trim().Replace(' ','_')"></a></td>
+                                                <td class="product_thumb"><a href="@Url.Action("Product","Home",new {Title = crt.ProductName.Trim().Replace(' ','_')})"><img src="@Model.Files.FirstOrDefault(p => p.RelateId == crt.ProductId && p.RelateType == 6).FileUrl" alt="@crt.ProductName.Trim().Replace(' ','_')"></a></td>
                                             }else
                                             {
                                                 <td class="product_thumb"></td>
                                             }
-                                            <td class="product_name"><a href="@Url.Action("Product","Home",new {Title = crt.Product.ProductName.Trim().Replace(' ','_')})">@crt.Product.ProductName</a></td>
-                                            <td class="product-price">@String.Format("{0:n0} تومان", crt.Product.Price)</td>
-                                            <td class="product_quantity"><label>تعداد</label> <input min="1" max="@crt.Product.AvailableCount" value="@crt.Quantity" onchange="QuantityChanged('@crt.Id','@crt.Product.Price',this.value)" type="number"></td>
-                                            <td class="product_total" data-id="@crt.Id">@String.Format("{0:n0} تومان", crt.Product.Price * crt.Quantity)</td>
+                                            <td class="product_name"><a href="@Url.Action("Product","Home",new {Title = crt.ProductName.Trim().Replace(' ','_')})">@crt.ProductName</a></td>
+                                            <td class="product-price">@String.Format("{0:n0} تومان", crt.ProductPrice)</td>
+                                            <td class="product_quantity"><label>تعداد</label> <input min="1" max="@crt.AvailableCount" value="@crt.Quantity" onchange="QuantityChanged('@crt.Id','@crt.ProductPrice',this.value)" type="number"></td>
+                                            <td class="product_total" data-id="@crt.Id">@String.Format("{0:n0} تومان", crt.ProductPrice * crt.Quantity)</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -85,7 +85,7 @@
                             <div class="coupon_inner">
                                 <div class="cart_subtotal">
                                     <p>جمع کل</p>
-                                    <p class="cart_amount" id="cartAggregate">@String.Format("{0:n0} تومان", Model.Carts.Sum(p => p.Product.Price*p.Quantity))</p>
+                                    <p class="cart_amount" id="cartAggregate">@String.Format("{0:n0} تومان", Model.Carts.Sum(p => p.ProductPrice*p.Quantity))</p>
                                 </div>
                                 <div class="cart_subtotal ">
                                     <p>تخفیف</p>
@@ -95,7 +95,7 @@
 
                                 <div class="cart_subtotal">
                                     <p>جمع کل</p>
-                                    <p class="cart_amount" id="cartSumAggregate">@String.Format("{0:n0} تومان", Model.Carts.Sum(p => p.Product.Price*p.Quantity))</p>
+                                    <p class="cart_amount" id="cartSumAggregate">@String.Format("{0:n0} تومان", Model.Carts.Sum(p => p.ProductPrice*p.Quantity))</p>
                                 </div>
                                 <div class="checkout_btn">
                                     @if(Model.Carts.Any())

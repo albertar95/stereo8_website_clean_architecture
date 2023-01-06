@@ -1,9 +1,13 @@
-﻿using Application.Feature.Category.Requests;
+﻿using Application.DTO.Comment;
+using Application.Feature.Category.Requests;
+using Application.Feature.Comment.Requests;
 using Application.Feature.File.Requests;
 using Application.Feature.Product.Requests;
 using Application.Feature.Product.Requests.UIProjections;
+using Application.Feature.Setting.Requests;
 using Application.Model;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,12 +64,12 @@ namespace FrontendApi.Controllers
             return Ok(await _mediator.Send(new GetProductsByCategoryIdRequest() { NidCategory = id, PageSize = pageSize, Skip = skip }));
         }
         [HttpPost("GetFilteredProducts")]
-        public async Task<IActionResult> GetFilteredProducts(UIProductFilters filters)
+        public async Task<IActionResult> GetFilteredProducts([FromBody] UIProductFilters filters)
         {
             return Ok(await _mediator.Send(new Application.Feature.Product.Requests.UIProjections.GetFilteredProductsRequest() { Filters = filters }));
         }
         [HttpGet("GetProductByTitle/{title}")]
-        public async Task<IActionResult> GetProductByTitle(string title, [FromQuery] bool includeAll = false)
+        public async Task<IActionResult> GetProductByTitle(string title, [FromQuery] bool includeAll = true)
         {
             return Ok(await _mediator.Send(new GetProductByTitleRequest() { Title = title, IncludeAll = includeAll }));
         }
@@ -103,6 +107,16 @@ namespace FrontendApi.Controllers
         public async Task<IActionResult> GetBargainProductCount()
         {
             return Ok(await _mediator.Send(new GetBargainProductsCountRequest()));
+        }
+        [HttpPost("CreateComment")]
+        public async Task<IActionResult> CreateComment([FromBody]CreateCommentDto comment)
+        {
+            return Ok(await _mediator.Send(new CreateCommentRequest() {  Comment = comment }));
+        }
+        [HttpPost("CreateSetting")]
+        public async Task<IActionResult> CreateSetting([FromBody] Domain.Setting setting)
+        {
+            return Ok(await _mediator.Send(new CreateSettingRequest() { Setting = setting }));
         }
     }
 }

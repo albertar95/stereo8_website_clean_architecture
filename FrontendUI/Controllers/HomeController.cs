@@ -13,6 +13,8 @@ using Application.DTO.Product;
 using Application.DTO.File;
 using Microsoft.AspNetCore.Authorization;
 using Application.Model;
+using Application.DTO.Cart;
+using Application.DTO.Favorite;
 
 namespace FrontendUI.Controllers
 {
@@ -22,6 +24,7 @@ namespace FrontendUI.Controllers
         public HomeController(IConfiguration configuration)
         {
             BaseAddress = configuration.GetSection("frontendApiAddress").Value;
+            //BaseAddress = configuration.GetSection("frontendApiAddressDebug").Value;//for debug
         }
         //first page section
         public async Task<IActionResult> Index()
@@ -29,16 +32,16 @@ namespace FrontendUI.Controllers
             IndexViewModel model = new IndexViewModel();
             List<FileListDto> files = new List<FileListDto>();
             List<Guid> relates = new List<Guid>();
-            var categoryListResult = await ApiCall.Call(ApiCall.HttpMethods.Get,$"{BaseAddress}/UI/GetCategories");
+            var categoryListResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get,$"{BaseAddress}/UI/GetCategories");
             if(categoryListResult.IsSuccessfulResult())
                 model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(categoryListResult.Content) ?? new List<CategoryListDto>();
-            var specialProductListResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetSpecialProducts");
+            var specialProductListResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetSpecialProducts");
             if (specialProductListResult.IsSuccessfulResult())
                 model.SpecialProducts = JsonConvert.DeserializeObject<List<ProductListDto>>(specialProductListResult.Content) ?? new List<ProductListDto>();
-            var offProductListResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetOffProducts");
+            var offProductListResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetOffProducts");
             if (offProductListResult.IsSuccessfulResult())
                 model.OffProducts = JsonConvert.DeserializeObject<List<ProductListDto>>(offProductListResult.Content) ?? new List<ProductListDto>();
-            var commonFileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=16&to=24");
+            var commonFileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=16&to=24");
             if (commonFileResult.IsSuccessfulResult())
             {
                 foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(commonFileResult.Content) ?? new List<FileListDto>())
@@ -51,7 +54,7 @@ namespace FrontendUI.Controllers
             relates.AddRange(model.OffProducts.Select(p => p.Id).ToList());
             foreach (var id in relates)
             {
-                var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get,$"{BaseAddress}/UI/GetFiles/{id}");
+                var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get,$"{BaseAddress}/UI/GetFiles/{id}");
                 if(fileResult.IsSuccessfulResult())
                 {
                     foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -67,7 +70,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> Category(string Title, string BrandId = "", string TypeId = "")
         {
             CategoryViewModel model = new CategoryViewModel();
-            var categoryResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategoryByTitle/{Title.Trim().Replace('_', ' ')}");
+            var categoryResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategoryByTitle/{Title.Trim().Replace('_', ' ')}");
             if (categoryResult.IsSuccessfulResult())
                 model.Category = JsonConvert.DeserializeObject<CategoryDto>(categoryResult.Content) ?? new CategoryDto();
             if (model.Category.Id != Guid.Empty)
@@ -76,9 +79,9 @@ namespace FrontendUI.Controllers
                 List<Guid> relates = new List<Guid>();
                 if (string.IsNullOrWhiteSpace(BrandId) && string.IsNullOrWhiteSpace(TypeId))
                 {
-                    var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductsByCategoryId/{model.Category.Id}");
+                    var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductsByCategoryId/{model.Category.Id}");
                     if (productsResult.IsSuccessfulResult())
-                        model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(categoryResult.Content) ?? new List<ProductListDto>();
+                        model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
                 }
                 else
                 {
@@ -95,18 +98,18 @@ namespace FrontendUI.Controllers
                         types.Add(model.TypeId);
                     }
                     var content = new StringContent(JsonConvert.SerializeObject(new UIProductFilters() { NidCategory = model.Category.Id, BrandIds = brands, TypeIds = types }), Encoding.UTF8, "application/json");
-                    var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
+                    var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
                     if (productsResult.IsSuccessfulResult())
                         model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
                 }
-                var productCountResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
+                var productCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
                 if (productCountResult.IsSuccessfulResult())
                     model.ProductCount = JsonConvert.DeserializeObject<int>(productCountResult.Content);
                 relates.Add(model.Category.Id);
                 relates.AddRange(model.Products.Select(p => p.Id).ToList());
                 foreach (var id in relates)
                 {
-                    var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                     if (fileResult.IsSuccessfulResult())
                     {
                         foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -122,7 +125,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> CategoryFilter(string NidCategory, string MinPrice, string MaxPrice, string TypeId, string BrandId, int Sorttype)
         {
             CategoryViewModel model = new CategoryViewModel();
-            var categoryResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategory/{NidCategory}");
+            var categoryResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategory/{NidCategory}");
             if (categoryResult.IsSuccessfulResult())
                 model.Category = JsonConvert.DeserializeObject<CategoryDto>(categoryResult.Content) ?? new CategoryDto();
             if (model.Category.Id != Guid.Empty)
@@ -146,18 +149,18 @@ namespace FrontendUI.Controllers
                     }
                 }
                 var content = new StringContent(JsonConvert.SerializeObject(new UIProductFilters() { NidCategory = model.Category.Id, BrandIds = brands, TypeIds = types, SortType = Sorttype, MinPrice = decimal.Parse(MinPrice), MaxPrice = decimal.Parse(MaxPrice) }), Encoding.UTF8, "application/json");
-                var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
+                var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
                 if (productsResult.IsSuccessfulResult())
-                    model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(categoryResult.Content) ?? new List<ProductListDto>();
-                var productCountResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
+                    model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
+                var productCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
                 if (productCountResult.IsSuccessfulResult())
-                    model.ProductCount = JsonConvert.DeserializeObject<int>(categoryResult.Content);
+                    model.ProductCount = JsonConvert.DeserializeObject<int>(productCountResult.Content);
                 model.SortType = Sorttype;
                 relates.Add(model.Category.Id);
                 relates.AddRange(model.Products.Select(p => p.Id).ToList());
                 foreach (var id in relates)
                 {
-                    var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                     if (fileResult.IsSuccessfulResult())
                     {
                         foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -175,7 +178,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> CategoryPagination(string NidCategory, string MinPrice, string MaxPrice, string TypeId, string BrandId, int PageNumber, int Sorttype)
         {
             CategoryViewModel model = new CategoryViewModel();
-            var categoryResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategory/{NidCategory}");
+            var categoryResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategory/{NidCategory}");
             if (categoryResult.IsSuccessfulResult())
                 model.Category = JsonConvert.DeserializeObject<CategoryDto>(categoryResult.Content) ?? new CategoryDto();
             if (model.Category.Id != Guid.Empty)
@@ -199,19 +202,19 @@ namespace FrontendUI.Controllers
                     }
                 }
                 var content = new StringContent(JsonConvert.SerializeObject(new UIProductFilters() { NidCategory = model.Category.Id, BrandIds = brands, TypeIds = types, SortType = Sorttype, MinPrice = decimal.Parse(MinPrice), MaxPrice = decimal.Parse(MaxPrice), Pagesize = 10, Skip = PageNumber - 1 }), Encoding.UTF8, "application/json");
-                var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
+                var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/GetFilteredProducts",content);
                 if (productsResult.IsSuccessfulResult())
-                    model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(categoryResult.Content) ?? new List<ProductListDto>();
-                var productCountResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
+                    model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
+                var productCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductCount/{model.Category.Id}");
                 if (productCountResult.IsSuccessfulResult())
-                    model.ProductCount = JsonConvert.DeserializeObject<int>(categoryResult.Content);
+                    model.ProductCount = JsonConvert.DeserializeObject<int>(productCountResult.Content);
                 model.PageNumber = PageNumber;
                 model.SortType = Sorttype;
                 relates.Add(model.Category.Id);
                 relates.AddRange(model.Products.Select(p => p.Id).ToList());
                 foreach (var id in relates)
                 {
-                    var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                     if (fileResult.IsSuccessfulResult())
                     {
                         foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -230,21 +233,21 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> Product(string Title)
         {
             ProductViewModel model = new ProductViewModel();
-            var productResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategoryByTitle/{Title.Trim().Replace('_', ' ')}");
+            var productResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductByTitle/{Title.Trim().Replace('_', ' ')}");
             if (productResult.IsSuccessfulResult())
                 model.Product = JsonConvert.DeserializeObject<DetailProductDto>(productResult.Content) ?? new DetailProductDto();
             if (model.Product.Id != Guid.Empty)
             {
                 List<FileListDto> files = new List<FileListDto>();
                 List<Guid> relates = new List<Guid>();
-                var simProductResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetSimilarProducts/{model.Product.Id}");
+                var simProductResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetSimilarProducts/{model.Product.Id}");
                 if (simProductResult.IsSuccessfulResult())
-                    model.SimilarProducts = JsonConvert.DeserializeObject<List<ProductListDto>>(productResult.Content) ?? new List<ProductListDto>();
+                    model.SimilarProducts = JsonConvert.DeserializeObject<List<ProductListDto>>(simProductResult.Content) ?? new List<ProductListDto>();
                 relates.Add(model.Product.Id);
                 relates.AddRange(model.SimilarProducts.Select(p => p.Id).ToList());
                 foreach (var id in relates)
                 {
-                    var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                     if (fileResult.IsSuccessfulResult())
                     {
                         foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -261,7 +264,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> Search(string Text)
         {
             List<ProductListDto> res = new List<ProductListDto>();
-            var searchResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/SearchProduct/{Text}");
+            var searchResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/SearchProduct/{Text}");
             if (searchResult.IsSuccessfulResult())
                 res = JsonConvert.DeserializeObject<List<ProductListDto>>(searchResult.Content) ?? new List<ProductListDto>();
             if (res.ToList().Count != 0)
@@ -276,7 +279,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> AboutUs()
         {
             List<FileListDto> files = new List<FileListDto>();
-            var commonFileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=25&to=28");
+            var commonFileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=25&to=28");
             if (commonFileResult.IsSuccessfulResult())
             {
                 foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(commonFileResult.Content) ?? new List<FileListDto>())
@@ -295,7 +298,7 @@ namespace FrontendUI.Controllers
             CategoriesViewModel model = new CategoriesViewModel();
             List<FileListDto> files = new List<FileListDto>();
             List<Guid> relates = new List<Guid>();
-            var searchResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategories?includeProduct=true");
+            var searchResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCategories?includeProduct=true");
             if (searchResult.IsSuccessfulResult())
                 model.Categories = JsonConvert.DeserializeObject<List<CategoryDto>>(searchResult.Content) ?? new List<CategoryDto>();
             foreach (var cat in model.Categories)
@@ -304,7 +307,7 @@ namespace FrontendUI.Controllers
             }
             foreach (var id in relates)
             {
-                var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress} /UI/GetFiles/{id}");
+                var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress} /UI/GetFiles/{id}");
                 if (fileResult.IsSuccessfulResult())
                 {
                     foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -321,13 +324,13 @@ namespace FrontendUI.Controllers
             CategoryViewModel model = new CategoryViewModel();
             List<FileListDto> files = new List<FileListDto>();
             List<Guid> relates = new List<Guid>();
-            var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainedProducts");
+            var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainedProducts");
             if (productsResult.IsSuccessfulResult())
                 model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
-            var productCountResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainProductCount");
+            var productCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainProductCount");
             if (productCountResult.IsSuccessfulResult())
                 model.ProductCount = JsonConvert.DeserializeObject<int>(productCountResult.Content);
-            var commonFileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=25&to=28");
+            var commonFileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=25&to=28");
             if (commonFileResult.IsSuccessfulResult())
             {
                 foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(commonFileResult.Content) ?? new List<FileListDto>())
@@ -338,7 +341,7 @@ namespace FrontendUI.Controllers
             relates.AddRange(model.Products.Select(p => p.Id).ToList());
                 foreach (var id in relates)
                 {
-                    var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                     if (fileResult.IsSuccessfulResult())
                     {
                         foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -355,16 +358,16 @@ namespace FrontendUI.Controllers
             CategoryViewModel model = new CategoryViewModel();
             List<FileListDto> files = new List<FileListDto>();
             List<Guid> relates = new List<Guid>();
-            var productsResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainedProducts?pageSize=10&skip={PageNumber - 1}");
+            var productsResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainedProducts?pageSize=10&skip={PageNumber - 1}");
             if (productsResult.IsSuccessfulResult())
                 model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(productsResult.Content) ?? new List<ProductListDto>();
-            var productCountResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainProductCount");
+            var productCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetBargainProductCount");
             if (productCountResult.IsSuccessfulResult())
                 model.ProductCount = JsonConvert.DeserializeObject<int>(productCountResult.Content);
             relates.AddRange(model.Products.Select(p => p.Id).ToList());
             foreach (var id in relates)
             {
-                var fileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
                 if (fileResult.IsSuccessfulResult())
                 {
                     foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
@@ -380,7 +383,7 @@ namespace FrontendUI.Controllers
         public async Task<IActionResult> Delivery()
         {
             List<FileListDto> files = new List<FileListDto>();
-            var commonFileResult = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=28&to=29");
+            var commonFileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetCommonFiles?from=28&to=29");
             if (commonFileResult.IsSuccessfulResult())
             {
                 foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(commonFileResult.Content) ?? new List<FileListDto>())
@@ -395,221 +398,278 @@ namespace FrontendUI.Controllers
             return View("HttpError", status);
         }
         //broker stuffs
-        public IActionResult AddComment(Comment comment)
+        public async Task<IActionResult> AddComment(Comment comment)
         {
-            //comment.Id = Guid.NewGuid();
-            //if (comment.UserId == Guid.Empty)
-            //    comment.UserId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
-            //comment.CreateDate = DateTime.Now;
-            //comment.State = 0;
-            //if (_db.Add<Comment>(comment))
-            //    TempData["CommentSuccess"] = $"نظر شما با موفقیت ثبت گردید و پس از تایید مدیر سایت به بخش نظرات اضافه خواهد شد.";
-            //else
-            //    TempData["CommentError"] = "خطا انجام عملیات.لطفا مجددا امتحان کنید";
-            //return RedirectToAction("Product", new { Title = _db.GetProductById(comment.ProductId, false).ProductName.Replace(' ', '_') });
-            return View();
+            if (comment.UserId == Guid.Empty)
+                comment.UserId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/CreateComment",new StringContent(JsonConvert.SerializeObject(comment),Encoding.UTF8,"application/json"));
+            if (result.IsSuccessfulResult())
+            {
+                if (JsonConvert.DeserializeObject<bool>(result.Content))
+                    TempData["CommentSuccess"] = $"نظر شما با موفقیت ثبت گردید و پس از تایید مدیر سایت به بخش نظرات اضافه خواهد شد.";
+                else
+                    TempData["CommentError"] = "خطا انجام عملیات.لطفا مجددا امتحان کنید";
+            }
+            return RedirectToRoute(Request.Path);
         }
-        public ActionResult AddToNewsletter(string Mail)
+        public async Task<IActionResult> AddToNewsletter(string Mail)
         {
-            //Setting setting = new Setting() { NidSetting = Guid.NewGuid(), SettingAttribute = "NewsletterMail", SettingValue = Mail };
-            //return Json(new { success = _db.Add<Setting>(setting) });
-            return View();
+            Setting setting = new Setting() { Id = Guid.NewGuid(), SettingAttribute = "NewsletterMail", SettingValue = Mail };
+            var result = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/CreateSetting", new StringContent(JsonConvert.SerializeObject(setting), Encoding.UTF8, "application/json"));
+            return Json(new { success = result.IsSuccessfulResult() });
         }
-        public ActionResult AddContactForm(ContactForm form)
+        public async Task<IActionResult> AddContactForm(ContactForm form)
         {
-            //Setting setting = new Setting() { NidSetting = Guid.NewGuid(), SettingAttribute = "ContactForm", SettingValue = string.Format("{0},{1},{2},{3}", form.name, form.subject, form.email, form.message) };
-            //if (_db.Add<Setting>(setting))
-            //    TempData["ContactSuccess"] = "دیدگاه شما با موفقیت ثبت گردید.از این که نظرات خود را با ما به اشتراک می گذارید متشکریم.";
-            //else
-            //    TempData["ContactError"] = "خطایی رخ داده است.لطفا مجددا امتحان کنید";
+            Setting setting = new Setting() { Id = Guid.NewGuid(), SettingAttribute = "ContactForm", SettingValue = string.Format("{0},{1},{2},{3}", form.name, form.subject, form.email, form.message) };
+            var result = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/UI/CreateSetting", new StringContent(JsonConvert.SerializeObject(setting), Encoding.UTF8, "application/json"));
+            if (result.IsSuccessfulResult())
+                TempData["ContactSuccess"] = "دیدگاه شما با موفقیت ثبت گردید.از این که نظرات خود را با ما به اشتراک می گذارید متشکریم.";
+            else
+                TempData["ContactError"] = "خطایی رخ داده است.لطفا مجددا امتحان کنید";
             return RedirectToAction("ContactUs");
         }
         //purchase section
-        public IActionResult Carts()
+        public async Task<IActionResult> Carts()
         {
-            //if (Request.Cookies.ContainsKey("Stereo8Login"))
-            //{
-            //    CartViewModel model = new CartViewModel();
-            //    model.Carts = _db.GetCartsByUserId(Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2)));
-            //    List<Models.File> files = new List<Models.File>();
-            //    foreach (var crt in model.Carts)
-            //    {
-            //        foreach (var f in _db.GetFiles(crt.ProductId))
-            //        {
-            //            files.Add(f);
-            //        }
-            //    }
-            //    model.Files = files;
-            //    return View(model);
-            //}
-            //else
+            if (Request.Cookies.ContainsKey("Stereo8Login"))
+            {
+                CartViewModel model = new CartViewModel();
+                List<FileListDto> files = new List<FileListDto>();
+                List<Guid> relates = new List<Guid>();
+                var userId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+                var cartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCarts/{userId}");
+                if (cartResult.IsSuccessfulResult())
+                    model.Carts = JsonConvert.DeserializeObject<List<CartListDto>>(cartResult.Content) ?? new List<CartListDto>();
+                relates.AddRange(model.Carts.Select(p => p.Id).ToList());
+                foreach (var id in relates)
+                {
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    if (fileResult.IsSuccessfulResult())
+                    {
+                        foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
+                        {
+                            files.Add(f);
+                        }
+                    }
+                }
+                model.Files = files;
+                return View(model);
+            }
+            else
                 return RedirectToAction("Login");
         }
-        public IActionResult Favorites()
+        public async Task<IActionResult> Favorites()
         {
-            //if (Request.Cookies.ContainsKey("Stereo8Login"))
-            //{
-            //    FavoriteViewModel model = new FavoriteViewModel();
-            //    model.Favorites = _db.GetFavoritesByUserId(Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2)));
-            //    List<Models.File> files = new List<Models.File>();
-            //    foreach (var crt in model.Favorites)
-            //    {
-            //        foreach (var f in _db.GetFiles(crt.ProductId))
-            //        {
-            //            files.Add(f);
-            //        }
-            //    }
-            //    model.Files = files;
-            //    return View(model);
-            //}
-            //else
+            if (Request.Cookies.ContainsKey("Stereo8Login"))
+            {
+                FavoriteViewModel model = new FavoriteViewModel();
+                List<FileListDto> files = new List<FileListDto>();
+                List<Guid> relates = new List<Guid>();
+                var userId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+                var favResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavorites/{userId}");
+                if (favResult.IsSuccessfulResult())
+                    model.Favorites = JsonConvert.DeserializeObject<List<FavoriteListDto>>(favResult.Content) ?? new List<FavoriteListDto>();
+                relates.AddRange(model.Favorites.Select(p => p.Id).ToList());
+                foreach (var id in relates)
+                {
+                    var fileResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetFiles/{id}");
+                    if (fileResult.IsSuccessfulResult())
+                    {
+                        foreach (var f in JsonConvert.DeserializeObject<List<FileListDto>>(fileResult.Content) ?? new List<FileListDto>())
+                        {
+                            files.Add(f);
+                        }
+                    }
+                }
+                model.Files = files;
+                return View(model);
+            }
+            else
                 return RedirectToAction("Login");
         }
-        public ActionResult AddProductToCart(Guid NidProduct, int Quantity, int price)//done
+        public async Task<IActionResult> AddProductToCart(Guid NidProduct, int Quantity, int price)//done
         {
-            //var niduser = Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2));
-            //var products = _db.GetCartProductsByUserId(niduser);
-            //int cartCount = _db.GetCartCountByUserId(niduser);
-            //bool status = true;
-            //var tmpProduct = _db.GetProductById(NidProduct, false);
-            //if (tmpProduct != null)
-            //{
-            //    if (!products.Contains(NidProduct))
-            //    {
-            //        if (tmpProduct.AvailableCount >= Quantity)
-            //        {
-            //            var newCart = new Cart() { CreateDate = DateTime.Now, NidCart = Guid.NewGuid(), ProductId = NidProduct, UserId = niduser, Quantity = Quantity };
-            //            if (_db.Add<Cart>(newCart))
-            //            {
-            //                cartCount = _db.GetCartCountByUserId(niduser);
-            //            }
-            //            else
-            //                status = false;
-            //        }
-            //        else
-            //        {
-            //            var newCart = new Cart() { CreateDate = DateTime.Now, NidCart = Guid.NewGuid(), ProductId = NidProduct, UserId = niduser, Quantity = tmpProduct.AvailableCount };
-            //            if (_db.Add<Cart>(newCart))
-            //            {
-            //                cartCount = _db.GetCartCountByUserId(niduser);
-            //            }
-            //            else
-            //                status = false;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        var cart = _db.GetCartByProductId(niduser, NidProduct);
-            //        if (cart.NidCart != Guid.Empty)
-            //        {
-            //            if (tmpProduct.AvailableCount >= (cart.Quantity + Quantity))
-            //                cart.Quantity = cart.Quantity + Quantity;
-            //            cart.LastModified = DateTime.Now;
-            //            if (!_db.UpdateCart(cart))
-            //                status = false;
-            //        }
-            //        else
-            //            status = false;
-            //    }
-            //}
-            //if (Request.Cookies.ContainsKey("CartCount"))
-            //    Response.Cookies.Delete("CartCount");
-            //HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //if (status)
-            //    return Json(new { success = true, count = cartCount });
-            //else
+            var userId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            List<Guid> products = new List<Guid>();
+            int cartCount = 0;
+            ProductDto tmpProduct = new ProductDto();
+            var cartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCarts/{userId}");
+            if (cartResult.IsSuccessfulResult())
+                products = JsonConvert.DeserializeObject<List<CartListDto>>(cartResult.Content).Select(p => p.ProductId).ToList();
+            var cartCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{userId}");
+            if (cartCountResult.IsSuccessfulResult())
+                cartCount = JsonConvert.DeserializeObject<int>(cartCountResult.Content);
+            bool status = true;
+            var productResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/UI/GetProductById/{NidProduct}");
+            if (productResult.IsSuccessfulResult())
+                tmpProduct = JsonConvert.DeserializeObject<ProductDto>(cartResult.Content) ?? new ProductDto();
+            if (!products.Contains(NidProduct))
+            {
+                if (tmpProduct.AvailableCount >= Quantity)
+                {
+                    var newCart = new CreateCartDto() { Quantity = Quantity, ProductId = NidProduct, UserId = userId };
+                    var addCartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Purchase/CreateCart",new StringContent(JsonConvert.SerializeObject(newCart),Encoding.UTF8, "application/json"));
+                    if (addCartResult.IsSuccessfulResult())
+                    {
+                        var cartCountResult2 = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{userId}");
+                        if (cartCountResult2.IsSuccessfulResult())
+                            cartCount = JsonConvert.DeserializeObject<int>(cartCountResult2.Content);
+                    }
+                    else
+                        status = false;
+                }
+                else
+                {
+                    var newCart = new CreateCartDto() { Quantity = tmpProduct.AvailableCount, ProductId = NidProduct, UserId = userId };
+                    var addCartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Purchase/CreateCart", new StringContent(JsonConvert.SerializeObject(newCart), Encoding.UTF8, "application/json"));
+                    if (addCartResult.IsSuccessfulResult())
+                    {
+                        var cartCountResult2 = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{userId}");
+                        if (cartCountResult2.IsSuccessfulResult())
+                            cartCount = JsonConvert.DeserializeObject<int>(cartCountResult2.Content);
+                    }
+                    else
+                        status = false;
+                }
+            }
+            else
+            {
+                var cartResult2 = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetUsersCartByProductId/{userId}/{NidProduct}");
+                if (cartResult2.IsSuccessfulResult())
+                {
+                    var cart = JsonConvert.DeserializeObject<CartDto>(cartResult2.Content) ?? new CartDto();
+                    if (tmpProduct.AvailableCount >= (cart.Quantity + Quantity))
+                        cart.Quantity = cart.Quantity + Quantity;
+                    var updateCartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Purchase/UpdateCart", new StringContent(JsonConvert.SerializeObject(cart), Encoding.UTF8, "application/json"));
+                    if (!updateCartResult.IsSuccessfulResult())
+                        status = false;
+                }
+                else
+                    status = false;
+            }
+            if (Request.Cookies.ContainsKey("CartCount"))
+                Response.Cookies.Delete("CartCount");
+            HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+            if (status)
+                return Json(new { success = true, count = cartCount });
+            else
                 return Json(new { success = false, message = "خطایی رخ داده است.لطفا مجددا امتحان کنید" });
         }
-        public ActionResult RemoveProductFromCart(Guid NidCart)//done
+        public async Task<IActionResult> RemoveProductFromCart(Guid NidCart)//done
         {
-            //var niduser = Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2));
-            //if (_db.Remove<Cart>(_db.GetCartById(NidCart)))
-            //{
-            //    int cartCount = _db.GetCartCountByUserId(niduser);
-            //    if (Request.Cookies.ContainsKey("CartCount"))
-            //        Response.Cookies.Delete("CartCount");
-            //    HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //    decimal aggregate = _db.GetCartAggregateByUserId(niduser);
-            //    return Json(new { success = true, count = cartCount, aggregate = aggregate });
-            //}
-            //else
+            var niduser = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            var deleteResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Purchase/DeleteCart/{NidCart}");
+            if (deleteResult.IsSuccessfulResult())
+            {
+                int cartCount = 0;
+                var cartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{niduser}");
+                if (cartResult.IsSuccessfulResult())
+                    cartCount = JsonConvert.DeserializeObject<int>(cartResult.Content);
+                if (Request.Cookies.ContainsKey("CartCount"))
+                    Response.Cookies.Delete("CartCount");
+                HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                var aggregateResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartAggregateByUserId/{niduser}");
+                if (aggregateResult.IsSuccessfulResult())
+                    return Json(new { success = true, count = cartCount, aggregate = JsonConvert.DeserializeObject<decimal>(aggregateResult.Content) });
+                else
+                    return Json(new { success = false, count = cartCount, aggregate = 0 });
+            }
+            else
                 return Json(new { success = false });
         }
-        public ActionResult CartQuantityChanged(Guid NidCart, int Quantity)//done
+        public async Task<IActionResult> CartQuantityChanged(Guid NidCart, int Quantity)//done
         {
-            //var niduser = Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2));
-            //var tmpCart = _db.GetCartById(NidCart);
-            //if (tmpCart.NidCart != Guid.Empty)
-            //{
-            //    tmpCart.LastModified = DateTime.Now;
-            //    tmpCart.Quantity = Quantity;
-            //    if (_db.UpdateCart(tmpCart))
-            //    {
-            //        int cartCount = _db.GetCartCountByUserId(niduser);
-            //        decimal aggregate = _db.GetCartAggregateByUserId(niduser);
-            //        return Json(new { success = true, count = cartCount, aggregate = aggregate });
-            //    }
-            //    else
-            //        return Json(new { success = false });
-            //}
-            //else
+            var niduser = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            var updateCartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Purchase/UpdateCart", new StringContent(JsonConvert.SerializeObject(new UpdateCartDto() {  Id = NidCart, Quantity = Quantity }), Encoding.UTF8, "application/json"));
+            if (updateCartResult.IsSuccessfulResult() && JsonConvert.DeserializeObject<bool>(updateCartResult.Content))
+            {
+                int cartCount = 0;
+                var cartResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{niduser}");
+                if (cartResult.IsSuccessfulResult())
+                    cartCount = JsonConvert.DeserializeObject<int>(cartResult.Content);
+                var aggregateResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartAggregateByUserId/{niduser}");
+                if (aggregateResult.IsSuccessfulResult())
+                    return Json(new { success = true, count = cartCount, aggregate = JsonConvert.DeserializeObject<decimal>(aggregateResult.Content) });
+                else
+                    return Json(new { success = false });
+
+            }
+            else
                 return Json(new { success = false });
 
         }
-        public ActionResult AddProductToFavorites(Guid NidProduct)//done
+        public async Task<IActionResult> AddProductToFavorites(Guid NidProduct)//done
         {
-            //var niduser = Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2));
-            //var products = _db.GetFavoriteProductsByUserId(niduser);
-            //int favCount = _db.GetFavoriteCountByUserId(niduser);
-            //if (!products.Contains(NidProduct))
-            //{
-            //    var newFav = new Favorite() { CreateDate = DateTime.Now, NidFav = Guid.NewGuid(), ProductId = NidProduct, UserId = niduser };
-            //    if (_db.Add<Favorite>(newFav))
-            //    {
-            //        favCount = _db.GetFavoriteCountByUserId(niduser);
-            //        if (Request.Cookies.ContainsKey("FavCount"))
-            //            Response.Cookies.Delete("FavCount");
-            //        HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //        return Json(new { success = true, count = favCount });
-            //    }
-            //    else
-            //        return Json(new { success = false });
-            //}
-            //else
-            //return Json(new { success = true, count = favCount });
-            return View();
+            var userId = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            List<Guid> products = new List<Guid>();
+            int favCount = 0;
+            var favResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavorites/{userId}");
+            if (favResult.IsSuccessfulResult())
+                products = JsonConvert.DeserializeObject<List<CartListDto>>(favResult.Content).Select(p => p.ProductId).ToList();
+            var favCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavoriteCountByUserId/{userId}");
+            if (favCountResult.IsSuccessfulResult())
+                favCount = JsonConvert.DeserializeObject<int>(favCountResult.Content);
+            if (!products.Contains(NidProduct))
+            {
+                var newFav = new CreateFavoriteDto() { ProductId = NidProduct, UserId = userId };
+                var addFavResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Purchase/CreateFavorite",new StringContent(JsonConvert.SerializeObject(newFav),Encoding.UTF8,"application/json"));
+                if (addFavResult.IsSuccessfulResult())
+                {
+                    var favCountResult2 = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavoriteCountByUserId/{userId}");
+                    if (favCountResult2.IsSuccessfulResult())
+                        favCount = JsonConvert.DeserializeObject<int>(favCountResult2.Content);
+                    if (Request.Cookies.ContainsKey("FavCount"))
+                        Response.Cookies.Delete("FavCount");
+                    HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                    return Json(new { success = true, count = favCount });
+                }
+                else
+                    return Json(new { success = false });
+            }
+            else
+                return Json(new { success = true, count = favCount });
         }
-        public ActionResult RemoveProductFromFav(Guid NidFav)//done
+        public async Task<IActionResult> RemoveProductFromFav(Guid NidFav)//done
         {
-            //var niduser = Guid.Parse(UsersAuth.GetSpecificClaim(Request.Cookies["Stereo8Login"], 2));
-            //if (_db.Remove<Favorite>(_db.GetFavoriteById(NidFav)))
-            //{
-            //    int favCount = _db.GetFavoriteCountByUserId(niduser);
-            //    if (Request.Cookies.ContainsKey("FavCount"))
-            //        Response.Cookies.Delete("FavCount");
-            //    HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //    return Json(new { success = true, count = favCount });
-            //}
-            //else
+            var niduser = Guid.Parse("CE69B3F8-3A19-47B6-A5CC-BA09221857DA");
+            var deleteFavResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Purchase/DeleteFavorite/{NidFav}");
+            int favCount = 0;
+            if (deleteFavResult.IsSuccessfulResult() && JsonConvert.DeserializeObject<bool>(deleteFavResult.Content))
+            {
+                var favCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavoriteCountByUserId/{niduser}");
+                if (favCountResult.IsSuccessfulResult())
+                    favCount = JsonConvert.DeserializeObject<int>(favCountResult.Content);
+                if (Request.Cookies.ContainsKey("FavCount"))
+                    Response.Cookies.Delete("FavCount");
+                HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                return Json(new { success = true, count = favCount });
+            }
+            else
                 return Json(new { success = false });
         }
-        public ActionResult GetShipFee(int StateId, decimal TotalWeight, decimal CurrentAggregate)//done
+        public async Task<IActionResult> GetShipFee(int StateId, decimal TotalWeight, decimal CurrentAggregate)//done
         {
-            //bool status = true;
-            //var shipPrices = _db.GetShipPrices();
-            //decimal shipPriceCal = 0;
-            //if (StateId != 0)
-            //{
-            //    if (StateId == 1)
-            //        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).InnerState;
-            //    else if (StateId == 9 || StateId == 10 || StateId == 11 || StateId == 13 || StateId == 31)
-            //        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).NeighborState;
-            //    else
-            //        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).OtherState;
-            //}
-            //if (status)
-            //    return Json(new { success = true, shipprice = string.Format("{0:n0} تومان", shipPriceCal), newaggregate = string.Format("{0:n0} تومان", CurrentAggregate + shipPriceCal) });
-            //else
+            bool status = true;
+            decimal shipPriceCal = 0;
+            var shipPriceResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetShipPrices");
+            if (shipPriceResult.IsSuccessfulResult())
+            {
+                var shipPrices = JsonConvert.DeserializeObject<List<Domain.ShipPrice>>(shipPriceResult.Content);
+                if (StateId != 0)
+                {
+                    if (StateId == 1)
+                        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).InnerState;
+                    else if (StateId == 9 || StateId == 10 || StateId == 11 || StateId == 13 || StateId == 31)
+                        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).NeighborState;
+                    else
+                        shipPriceCal = shipPrices.FirstOrDefault(p => p.ToWeight == Math.Ceiling(TotalWeight)).OtherState;
+                }
+            }
+            else
+                status = false;
+            if (status)
+                return Json(new { success = true, shipprice = string.Format("{0:n0} تومان", shipPriceCal), newaggregate = string.Format("{0:n0} تومان", CurrentAggregate + shipPriceCal) });
+            else
                 return Json(new { success = false, message = "خطایی رخ داده است.لطفا مجددا امتحان کنید" });
         }
 

@@ -23,7 +23,7 @@ namespace Application.Feature.Comment.Handlers.Command
         }
         public async Task<bool> Handle(CreateCommentRequest request, CancellationToken cancellationToken)
         {
-            var comment = _mapper.Map<Domain.Comment>(request.comment);
+            var comment = _mapper.Map<Domain.Comment>(request.Comment);
             return await _generalRepository.Create(comment);
         }
     }

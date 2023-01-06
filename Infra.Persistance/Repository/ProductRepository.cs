@@ -206,7 +206,7 @@ namespace Infra.Persistance.Repository
         {
             try
             {
-                return await _context.Products.Include(p => p.Brand).Where(p => p.State == 0).OrderByDescending(q => q.OffPercentage).Skip(Skip * Pagesize).Take(Pagesize).ToListAsync();
+                return await _context.Products.Include(p => p.Category).Include(p => p.Brand).Where(p => p.State == 0).OrderByDescending(q => q.OffPercentage).Skip(Skip * Pagesize).Take(Pagesize).ToListAsync();
             }
             catch (Exception)
             {

@@ -17,6 +17,9 @@ using Application.DTO.Product;
 using Application.Model;
 using Application.DTO.File;
 using Application.Helpers;
+using Application.DTO.Order;
+using Application.DTO.Ship;
+using Application.DTO.Comment;
 
 namespace BackendUI.Controllers
 {
@@ -33,7 +36,7 @@ namespace BackendUI.Controllers
         //category section
         public async Task<IActionResult> Categories()
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList?includeProduct=true");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList?includeProduct=true");
             if (result.IsSuccessfulResult())
                 return View(JsonConvert.DeserializeObject<List<CategoryListDto>>(result.Content));
             else
@@ -42,7 +45,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> AddCategory(CreateCategoryDto category)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(category), Encoding.UTF8, "application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateCategory", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateCategory", Content);
             if(result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -56,11 +59,11 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> Category(Guid NidCategory)
         {
             var model = new CategoryViewModel();
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategory/{NidCategory}?includeProduct=true");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategory/{NidCategory}?includeProduct=true");
             if (result.IsSuccessfulResult())
             {
                 model.Category = JsonConvert.DeserializeObject<CategoryDto>(result.Content) ?? new CategoryDto();
-                var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidCategory}");
+                var result2 = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidCategory}");
                 if (result2.IsSuccessfulResult())
                     model.Files = JsonConvert.DeserializeObject<List<FileListDto>>(result2.Content) ?? new List<FileListDto>();
                 return View(model);
@@ -69,14 +72,14 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> EditType(Guid NidType)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetType/{NidType}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetType/{NidType}");
             if (result.IsSuccessfulResult())
                 return View(JsonConvert.DeserializeObject<TypeDto>(result.Content));
             else return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
         public async Task<IActionResult> EditBrand(Guid NidBrand)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetBrand/{NidBrand}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetBrand/{NidBrand}");
             if (result.IsSuccessfulResult())
                 return View(JsonConvert.DeserializeObject<BrandDto>(result.Content));
             else return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
@@ -84,7 +87,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> EditCategory(UpdateCategoryDto category)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(category),Encoding.UTF8,"application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateCategory", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateCategory", Content);
             if(result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -100,7 +103,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> DeleteCategory(Guid NidCategory)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -117,7 +120,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> AddType(CreateTypeDto type)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(type), Encoding.UTF8, "application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateType", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateType", Content);
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -132,7 +135,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> AddBrand(CreateBrandDto brand)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(brand), Encoding.UTF8, "application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateBrand", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Category/CreateBrand", Content);
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -146,7 +149,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> DeleteType(Guid NidType,Guid NidCategory)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteType/{NidType}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteType/{NidType}");
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -163,7 +166,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> SubmitEditType(UpdateTypeDto type)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(type), Encoding.UTF8, "application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateType", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateType", Content);
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -179,7 +182,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> DeleteBrand(Guid NidBrand, Guid NidCategory)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteBrand/{NidBrand}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteBrand/{NidBrand}");
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -196,7 +199,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> SubmitEditBrand(UpdateBrandDto brand)
         {
             var Content = new StringContent(JsonConvert.SerializeObject(brand), Encoding.UTF8, "application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateBrand", Content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Category/UpdateBrand", Content);
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -212,7 +215,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> CloseCategory(Guid NidCategory)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Category/DeleteCategory/{NidCategory}");
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -230,12 +233,12 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> Products()
         {
             ProductViewModel model = new ProductViewModel();
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductList", null);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductList", null);
             if (result.IsSuccessfulResult())
                 model.Products = JsonConvert.DeserializeObject<List<ProductListDto>>(result.Content);
             else
                 model.Products = new List<ProductListDto>();
-            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            var result2 = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
             if (result2.IsSuccessfulResult())
                 model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content);
             else
@@ -246,7 +249,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> AddProduct()
         {
             ProductViewModel model = new ProductViewModel();
-            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            var result2 = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
             if (result2.IsSuccessfulResult())
                 model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content);
             else
@@ -257,7 +260,7 @@ namespace BackendUI.Controllers
         {
             product.UserId = Guid.Parse("7E84B450-03E5-4969-BDF7-CB4EEB4FEBA1");
             var content = new StringContent(JsonConvert.SerializeObject(product),Encoding.UTF8,"application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Post,$"{BaseAddress}/Product/CreateProduct",content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post,$"{BaseAddress}/Product/CreateProduct",content);
             if(result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -274,17 +277,17 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> EditProduct(Guid NidProduct)
         {
             ProductViewModel model = new ProductViewModel();
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProduct/{NidProduct}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProduct/{NidProduct}");
             if (result.IsSuccessfulResult())
                 model.Product = JsonConvert.DeserializeObject<ProductDto>(result.Content) ?? new ProductDto();
             else
                 model.Product = new ProductDto();
-            var result2 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
+            var result2 = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Category/GetCategoryList");
             if (result2.IsSuccessfulResult())
                 model.Categories = JsonConvert.DeserializeObject<List<CategoryListDto>>(result2.Content) ?? new List<CategoryListDto>();
             else
                 model.Categories = new List<CategoryListDto>();
-            var result3 = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidProduct}");
+            var result3 = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{NidProduct}");
             if (result2.IsSuccessfulResult())
                 model.Files = JsonConvert.DeserializeObject<List<FileListDto>>(result3.Content) ?? new List<FileListDto>();
             else
@@ -295,7 +298,7 @@ namespace BackendUI.Controllers
         public async Task<IActionResult> SubmitEditProduct(UpdateProductDto product)
         {
             var content = new StringContent(JsonConvert.SerializeObject(product),Encoding.UTF8,"application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Patch, $"{BaseAddress}/Product/UpdateProduct",content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Product/UpdateProduct",content);
             if(result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -311,7 +314,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> ProductDetail(Guid NidProduct)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductDetail/{NidProduct}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Product/GetProductDetail/{NidProduct}");
             if (result.IsSuccessfulResult())
                 return Json(new { success = true, html = RenderViewToString.RenderViewAsync(this, "_ProductDetail", JsonConvert.DeserializeObject<DetailProductDto>(result.Content), true) });
             else
@@ -319,7 +322,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> DeleteProduct(Guid NidProduct)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/Product/DeleteProduct/{NidProduct}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/Product/DeleteProduct/{NidProduct}");
             if (result.IsSuccessfulResult())
             {
                 if (JsonConvert.DeserializeObject<bool>(result.Content))
@@ -358,7 +361,7 @@ namespace BackendUI.Controllers
                     break;
             }
             var content = new StringContent(JsonConvert.SerializeObject(filters),Encoding.UTF8,"application/json");
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/Product/GetFilteredProduct",content);
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/Product/GetFilteredProduct",content);
             success = result.IsSuccessfulResult();
             products = JsonConvert.DeserializeObject<List<ProductListDto>>(result.Content) ?? new List<ProductListDto>();
             return Json(new { success = success, html = RenderViewToString.RenderViewAsync(this, "_FilteredProduct", products, true) });
@@ -385,14 +388,14 @@ namespace BackendUI.Controllers
                     FilePath = Path.Combine(configuration.GetSection("ImagesPathRoot").Value, newFileName), Width = int.Parse(data["ImageWidth"].ToString()), 
                     FileUrl = $"{configuration.GetSection("ImageUrlRoot").Value}{newFileName}", Height = int.Parse(data["ImageHeight"].ToString()), TheFile = filebase64};
                     var content = new StringContent(JsonConvert.SerializeObject(newCreateFile), Encoding.UTF8, "application/json");
-                    var addresult = await ApiCall.Call(ApiCall.HttpMethods.Post, $"{BaseAddress}/File/CreateFile", content);
+                    var addresult = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/File/CreateFile", content);
                     if (!addresult.IsSuccessfulResult())
                         status = false;
                 }
             }
             if(status)
             {
-                var result = await ApiCall.Call(ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{Guid.Parse(data["RelateId"].ToString())}");
+                var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetFileList/{Guid.Parse(data["RelateId"].ToString())}");
                 if (result.IsSuccessfulResult())
                 {
                     var gfiles = JsonConvert.DeserializeObject<List<FileListDto>>(result.Content) ?? new List<FileListDto>();
@@ -410,7 +413,7 @@ namespace BackendUI.Controllers
         }
         public async Task<IActionResult> DeleteFile(Guid NidFile)
         {
-            var result = await ApiCall.Call(ApiCall.HttpMethods.Delete, $"{BaseAddress}/File/DeleteFile/{NidFile}");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/File/DeleteFile/{NidFile}");
             if(result.IsSuccessfulResult())
             {
                 if(JsonConvert.DeserializeObject<bool>(result.Content))
@@ -421,132 +424,124 @@ namespace BackendUI.Controllers
                 return Json(new { success = false });
         }
         //purchase section
-        public IActionResult Orders()
+        public async Task<IActionResult> Orders()
         {
-            //var orders = _productAction.GetOrders();
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetOrders");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<List<OrderListDto>>(result.Content));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult ClosedOrders()
+        public async Task<IActionResult> ClosedOrders()
         {
-            //var orders = _productAction.GetOrders(1);
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetOrders?state=1");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<List<OrderListDto>>(result.Content));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult OrderDetail(Guid NidOrder)
+        public async Task<IActionResult> OrderDetail(Guid NidOrder)
         {
-            //var order = _productAction.GetOrder(NidOrder);
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetOrder/{NidOrder}");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<OrderDto>(result.Content));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult Ships(byte state = 1)
+        public async Task<IActionResult> Ships(byte state = 1)
         {
-            //var ships = _productAction.GetShips(state);
-            //return View(new Tuple<IEnumerable<Ship>, byte>(ships, state));
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetShips?state={state}");
+            if (result.IsSuccessfulResult())
+                return View(new Tuple<List<ShipListDto>, byte>(JsonConvert.DeserializeObject<List<ShipListDto>>(result.Content) ?? new List<ShipListDto>(), state));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult UpdateShip(Guid NidShip, byte State)
+        public async Task<IActionResult> UpdateShip(Guid NidShip, byte State)
         {
-            //var ship = _productAction.GetShip(NidShip);
-            //ship.State = State;
-            //if (_productAction.UpdateShip(ship))
-            //    return Json(new { success = true, message = "مرسوله با موفقیت بروزرسانی شد" });
-            //else
-            //    return Json(new { success = false, message = "خطا در بروزرسانی مرسوله.لطفا مجددا امتحان کنید" });
-            return Json("");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/Purchase/UpdateShip/{NidShip}?state={State}");
+            if (result.IsSuccessfulResult())
+                return Json(new { success = true, message = "مرسوله با موفقیت بروزرسانی شد" });
+            else
+                return Json(new { success = false, message = "خطا در بروزرسانی مرسوله.لطفا مجددا امتحان کنید" });
         }
         //general section
-        public IActionResult Comments()
+        public async Task<IActionResult> Comments()
         {
-            //var comments = _productAction.GetComments();
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/General/GetComments");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<List<CommentListDto>>(result.Content));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult DeleteComment(Guid nidComment)
+        public async Task<IActionResult> DeleteComment(Guid nidComment)
         {
-            //var comment = _productAction.GetComment(nidComment);
-            //if (comment.NidComment != Guid.Empty)
-            //{
-            //    comment.State = 2;
-            //    if (_productAction.UpdateComment(comment))
-            //        return Json(new { success = true, message = "نظر با موفقیت حذف شد." });
-            //    else
-            //        return Json(new { success = false, message = "خطا در حذف نظر" });
-            //}
-            //else
-            //    return Json(new { success = false, message = "خطا در حذف نظر" });
-            return Json("");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/General/DeleteComment/{nidComment}");
+            if (result.IsSuccessfulResult())
+                return Json(new { success = true, message = "نظر با موفقیت حذف شد." });
+            else
+                return Json(new { success = false, message = "خطا در حذف نظر" });
         }
-        public IActionResult AcceptComment(Guid nidComment)
+        public async Task<IActionResult> AcceptComment(Guid nidComment)
         {
-            //var comment = _productAction.GetComment(nidComment);
-            //if (comment.NidComment != Guid.Empty)
-            //{
-            //    comment.State = 1;
-            //    if (_productAction.UpdateComment(comment))
-            //        return Json(new { success = true, message = "نظر با موفقیت تایید شد." });
-            //    else
-            //        return Json(new { success = false, message = "خطا در تایید نظر" });
-            //}
-            //else
-            //    return Json(new { success = false, message = "خطا در تایید نظر" });
-            return Json("");
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/General/UpdateComment/{nidComment}?state=2");
+            if (result.IsSuccessfulResult())
+                return Json(new { success = true, message = "نظر با موفقیت تایید شد." });
+            else
+                return Json(new { success = false, message = "خطا در تایید نظر" });
         }
-        public IActionResult AcceptedComments()
+        public async Task<IActionResult> AcceptedComments()
         {
-            //var comments = _productAction.GetComments(1);
-            return View();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/General/GetComments?state=2");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<List<CommentListDto>>(result.Content));
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
-        public IActionResult UnAcceptComment(Guid nidComment)
+        public async Task<IActionResult> UnAcceptComment(Guid nidComment)
         {
-            //var comment = _productAction.GetComment(nidComment);
-            //if (comment.NidComment != Guid.Empty)
-            //{
-            //    comment.State = 0;
-            //    if (_productAction.UpdateComment(comment))
-            //        return Json(new { success = true, message = "نظر با موفقیت بازگردانده شد." });
-            //    else
-            //        return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
-            //}
-            //else
-            return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/General/UpdateComment/{nidComment}?state=0");
+            if (result.IsSuccessfulResult())
+                return Json(new { success = true, message = "نظر با موفقیت بازگردانده شد." });
+            else
+                return Json(new { success = false, message = "خطا در بازگرداندن نظر" });
         }
-        public IActionResult Settings()
+        public async Task<IActionResult> Settings()
         {
-            //SettingViewModel model = new SettingViewModel();
-            //model.Settings = _commonAction.GetSettings();
-            //model.Files = _commonAction.GetCommonFiles();
-            return View();
+            SettingViewModel model = new SettingViewModel();
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/General/GetSettings");
+            if (result.IsSuccessfulResult())
+                model.Settings = JsonConvert.DeserializeObject<List<Domain.Setting>>(result.Content) ?? new List<Setting>();
+            var fileresult = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/File/GetCommonFiles");
+            if (result.IsSuccessfulResult())
+                model.Files = JsonConvert.DeserializeObject<List<FileListDto>>(result.Content) ?? new List<FileListDto>();
+            return View(model);
         }
-        public IActionResult AddSetting(Setting setting)
+        public async Task<IActionResult> AddSetting(Setting setting)
         {
-            //setting.NidSetting = Guid.NewGuid();
-            //setting.State = 0;
-            //if (_commonAction.Add<Setting>(setting))
-            //    TempData["SettingSuccess"] = "تنظیمات با موفقیت ایجاد گردید";
-            //else
-            //    TempData["SettingError"] = "خطا در ایجاد تنظیمات.لطفا مجددا امتحان کنید";
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Post, $"{BaseAddress}/General/CreateSetting",new StringContent(JsonConvert.SerializeObject(setting),Encoding.UTF8,"application/json"));
+            if (result.IsSuccessfulResult())
+                TempData["SettingSuccess"] = "تنظیمات با موفقیت ایجاد گردید";
+            else
+                TempData["SettingError"] = "خطا در ایجاد تنظیمات.لطفا مجددا امتحان کنید";
 
             return RedirectToAction("Settings");
         }
-        public IActionResult EditSetting(Setting setting)
+        public async Task<IActionResult> EditSetting(Setting setting)
         {
-            //if (_commonAction.Update<Setting>(setting))
-            //    TempData["SettingSuccess"] = "تنظیمات با موفقیت ویرایش گردید";
-            //else
-            //    TempData["SettingError"] = "خطا در ویرایش تنظیمات.لطفا مجددا امتحان کنید";
-
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Patch, $"{BaseAddress}/General/UpdateSetting", new StringContent(JsonConvert.SerializeObject(setting), Encoding.UTF8, "application/json"));
+            if (result.IsSuccessfulResult())
+                TempData["SettingSuccess"] = "تنظیمات با موفقیت ویرایش گردید";
+            else
+                TempData["SettingError"] = "خطا در ویرایش تنظیمات.لطفا مجددا امتحان کنید";
             return RedirectToAction("Settings");
         }
-        public IActionResult DeleteSetting(Guid NidSetting)
+        public async Task<IActionResult> DeleteSetting(Guid NidSetting)
         {
-            //var setting = _commonAction.GetSetting(NidSetting);
-            //if (setting.NidSetting != Guid.Empty)
-            //{
-            //    setting.State = 2;
-            //    if (_commonAction.Update<Setting>(setting))
-            //        TempData["SettingSuccess"] = "تنظیمات با حذف ایجاد گردید";
-            //    else
-            //        TempData["SettingError"] = "خطا در حذف تنظیمات.لطفا مجددا امتحان کنید";
-            //}
-            //else
-            //    TempData["SettingError"] = "تنظیمات یافت نشد";
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Delete, $"{BaseAddress}/General/DeleteSetting/{NidSetting}");
+            if (result.IsSuccessfulResult())
+                TempData["SettingSuccess"] = "تنظیمات با حذف ایجاد گردید";
+            else
+                TempData["SettingError"] = "خطا در حذف تنظیمات.لطفا مجددا امتحان کنید";
             return RedirectToAction("Settings");
         }
         public IActionResult StatusCodes(int status)
@@ -554,10 +549,13 @@ namespace BackendUI.Controllers
             return View(status);
         }
         //less importants
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            //var res = _commonAction.GetIndexPageValues();
-            return View(new string[5]{ "","", "", "", "" });
+            var result = await ApiCall.Call(ApiCall.ConsumerType.BackendUI,ApiCall.HttpMethods.Get, $"{BaseAddress}/General/GetIndexPageValues");
+            if (result.IsSuccessfulResult())
+                return View(JsonConvert.DeserializeObject<string[]>(result.Content) ?? new string[5] { "", "", "", "", "" });
+            else
+                return RedirectToAction("StatusCodes", new { status = (int)result.ResultCode });
         }
         public IActionResult Charts()
         {
