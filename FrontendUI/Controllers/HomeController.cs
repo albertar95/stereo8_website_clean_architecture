@@ -25,10 +25,13 @@ namespace FrontendUI.Controllers
     public class HomeController : Controller
     {
         private readonly string BaseAddress = "";
+        private readonly string MailBaseAddress = "";
         public HomeController(IConfiguration configuration)
         {
             BaseAddress = configuration.GetSection("frontendApiAddress").Value;
             //BaseAddress = configuration.GetSection("frontendApiAddressDebug").Value;//for debug
+            MailBaseAddress = configuration.GetSection("mailApiAddress").Value;
+            MailBaseAddress = configuration.GetSection("mailApiAddressDebug").Value;//for debug
         }
         //first page section
         public async Task<IActionResult> Index()
@@ -767,15 +770,7 @@ namespace FrontendUI.Controllers
                 {
                     var addUserResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Post, $"{BaseAddress}/User/CreateUser", new StringContent(JsonConvert.SerializeObject(user),Encoding.UTF8,"application/json"));
                     if (addUserResponse.IsSuccessfulResult())
-                    {
-                        //MailRequest verify = new MailRequest();
-                        //verify.Subject = $"فعال سازی حساب کاربری - {Commons.GetAppName()}";
-                        //verify.ToEmail = user.Username;
-                        //var mailHtml = RenderViewToString.RenderViewAsync(this, "_AccountVerificationEmail", string.Format("{0}://{1}/VerifyUserAccount?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
-                        //verify.Body = mailHtml.Result;
-                        //_db.SendEmail(verify);
                         return RedirectToAction("RegisterResult", new { IsSuccessful = true });
-                    }
                     else
                         return RedirectToAction("RegisterResult", new { IsSuccessful = false });
                 }
@@ -813,13 +808,11 @@ namespace FrontendUI.Controllers
                 var user = JsonConvert.DeserializeObject<UserDto>(getUserResponse.Content);
                 if (user != null)
                 {
-                    //MailRequest verify = new MailRequest();
-                    //verify.Subject = $"بازیابی کلمه عبور - {Commons.GetAppName()}";
-                    //verify.ToEmail = user.Username;
-                    //var mailHtml = RenderViewToString.RenderViewAsync(this, "_ResetPasswordEmail", string.Format("{0}://{1}/ChangePassword?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
-                    //verify.Body = mailHtml.Result;
-                    //_db.SendEmail(verify);
-                    return Json(new { success = true, message = "فرم بازیابی کلمه عبور به ایمیل شما ارسال شد.برای تغییر کلمه عبور به ایمیل خود مراجعه نمایید" });
+                    var sendMailResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Post, $"{MailBaseAddress}/Mail/SendForgetPasswordMail",new StringContent(JsonConvert.SerializeObject(user),Encoding.UTF8,"application/json"));
+                    if (sendMailResponse.IsSuccessfulResult())
+                        return Json(new { success = true, message = "فرم بازیابی کلمه عبور به ایمیل شما ارسال شد.برای تغییر کلمه عبور به ایمیل خود مراجعه نمایید" });
+                    else
+                        return Json(new { success = false, message = "خطا در سرور" });
                 }
                 else
                 {
