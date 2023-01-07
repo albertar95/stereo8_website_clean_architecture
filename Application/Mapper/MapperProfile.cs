@@ -8,6 +8,7 @@ using Application.DTO.Order;
 using Application.DTO.Product;
 using Application.DTO.Ship;
 using Application.DTO.Type;
+using Application.DTO.User;
 using Application.Helper;
 using AutoMapper;
 using Domain;
@@ -77,6 +78,10 @@ namespace Application.Mapper
             CreateMap<Order, OrderListDto>().ReverseMap();
             //ship
             CreateMap<Ship, ShipListDto>().ForMember("FirstName", m => m.MapFrom(x => x.Order.FirstName)).ForMember("LastName", m => m.MapFrom(x => x.Order.LastName)).ForMember("StateId", m => m.MapFrom(x => x.Order.StateId)).ForMember("CityId", m => m.MapFrom(x => x.Order.CityId)).ReverseMap();
+            //user
+            CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<User, CreateUserDto>();
+            CreateMap<CreateUserDto, User>().BeforeMap((c, b) => { b.Id = Guid.NewGuid(); b.CreateDate = DateTime.Now; b.PersianCreateDate = Commons.GetPersianDate(b.CreateDate); b.State = -1; });
         }
     }
 }

@@ -6,20 +6,6 @@
     ViewData["Typo"] = "website";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@section Styles
-    {
-    <meta name="robots" content="follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large" />
-    <meta property="og:updated_time" content="2022-12-09T22:28:56+03:30" />
-    <meta property="og:image" content="https://stereo8.ir/assets/img/logo/biglogo.webp" />
-    <meta property="og:image:width" content="1920" />
-    <meta property="og:image:height" content="1080" />
-    <meta property="og:image:alt" content="وبسایت استریو 8" />
-    <meta property="og:image:type" content="image/webp" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="@ViewData[" Title"]" />
-    <meta name="twitter:description" content="@ViewData["Desc"]" />
-    <meta name="twitter:image" content="https://stereo8.ir/assets/img/logo/biglogo.webp" />
-}
 <!--breadcrumbs area start-->
 <div class="breadcrumbs_area">
     <div class="container">
@@ -100,7 +86,6 @@
                 <div class="account_form register">
                     <h2>ثبت نام</h2>
                     <form action="Register">
-                        <input type="text" name="NidUser" hidden />
                         <p>
                             <label>نام <span>*</span></label>
                             <input type="text" name="FirstName" required>

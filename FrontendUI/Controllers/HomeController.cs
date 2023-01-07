@@ -15,6 +15,10 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Model;
 using Application.DTO.Cart;
 using Application.DTO.Favorite;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Application.DTO.User;
+using Application.Helper;
 
 namespace FrontendUI.Controllers
 {
@@ -674,6 +678,158 @@ namespace FrontendUI.Controllers
         }
 
         //user section
+        [AllowAnonymous]
+        public IActionResult Login()
+        {
+            return View();
+        }
+        public async Task<IActionResult> SubmitLogin(string Username, string Password, bool Remember)
+        {
+            var loginResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Post, $"{BaseAddress}/User/LoginUser", new StringContent(JsonConvert.SerializeObject(new UserLogin() {  Username = Username, Password = Password }), Encoding.UTF8, "application/json"));
+            if(loginResponse.IsSuccessfulResult())
+            {
+                var user = JsonConvert.DeserializeObject<UserDto>(loginResponse.Content);
+                if(user != null)
+                {
+                    if (user.Id == Guid.Empty)
+                    {
+                        TempData["LoginError"] = "نام کاربری یا کلمه عبور اشتباه است";
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        if (user.State == 0)
+                        {
+                            if (Request.Cookies.ContainsKey("Stereo8Login"))
+                                Response.Cookies.Delete("Stereo8Login");
+                            if (Request.Cookies.ContainsKey("CartCount"))
+                                Response.Cookies.Delete("CartCount");
+                            if (Request.Cookies.ContainsKey("FavCount"))
+                                Response.Cookies.Delete("FavCount");
+                            int cartCount = 0;
+                            int favCount = 0;
+                            var cartCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetCartCountByUserId/{user.Id}");
+                            if (cartCountResult.IsSuccessfulResult())
+                                cartCount = JsonConvert.DeserializeObject<int>(cartCountResult.Content);
+                            var favCountResult = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Get, $"{BaseAddress}/Purchase/GetFavoriteCountByUserId/{user.Id}");
+                            if (favCountResult.IsSuccessfulResult())
+                                favCount = JsonConvert.DeserializeObject<int>(favCountResult.Content);
+                            if (Remember)
+                            {
+                                HttpContext.Response.Cookies.Append("Stereo8Login", Commons.GenerateLoginCookieValue(user, cartCount, favCount), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                                HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                                HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
+                            }
+                            else
+                            {
+                                HttpContext.Response.Cookies.Append("Stereo8Login", Commons.GenerateLoginCookieValue(user, cartCount, favCount), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
+                                HttpContext.Response.Cookies.Append("CartCount", cartCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
+                                HttpContext.Response.Cookies.Append("FavCount", favCount.ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
+                            }
+                            return RedirectToAction("Index");
+                        }
+                        else
+                        {
+                            TempData["LoginWarning"] = "کاربر غیرفعال می باشد";
+                            return RedirectToAction("Login");
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["LoginWarning"] = "کاربر یافت نشد";
+                    return RedirectToAction("Login");
+                }
+            }
+            else
+            {
+                TempData["LoginWarning"] = "خطا در سرور.لطفا مجددا امتحان کنید";
+                return RedirectToAction("Login");
+            }
+        }
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (Request.Cookies.ContainsKey("Stereo8Login"))
+                Response.Cookies.Delete("Stereo8Login");
+            if (Request.Cookies.ContainsKey("CartCount"))
+                Response.Cookies.Delete("CartCount");
+            if (Request.Cookies.ContainsKey("FavCount"))
+                Response.Cookies.Delete("FavCount");
+            return RedirectToAction("Login");
+        }
+        public async Task<IActionResult> Register(CreateUserDto user)
+        {
+            var checkUsernameResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Get, $"{BaseAddress}/User/CheckUsernameExist/{user.Username}");
+            if (checkUsernameResponse.IsSuccessfulResult())
+            {
+                if(!JsonConvert.DeserializeObject<bool>(checkUsernameResponse.Content))
+                {
+                    var addUserResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Post, $"{BaseAddress}/User/CreateUser", new StringContent(JsonConvert.SerializeObject(user),Encoding.UTF8,"application/json"));
+                    if (addUserResponse.IsSuccessfulResult())
+                    {
+                        //MailRequest verify = new MailRequest();
+                        //verify.Subject = $"فعال سازی حساب کاربری - {Commons.GetAppName()}";
+                        //verify.ToEmail = user.Username;
+                        //var mailHtml = RenderViewToString.RenderViewAsync(this, "_AccountVerificationEmail", string.Format("{0}://{1}/VerifyUserAccount?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
+                        //verify.Body = mailHtml.Result;
+                        //_db.SendEmail(verify);
+                        return RedirectToAction("RegisterResult", new { IsSuccessful = true });
+                    }
+                    else
+                        return RedirectToAction("RegisterResult", new { IsSuccessful = false });
+                }
+                else
+                {
+                    TempData["UserExistError"] = "نام کاربری وارد شده قبلا ثبت شده است.لطفا ایمیل دیگری وارد کنید";
+                    return RedirectToAction("Login");
+                }
+            }
+            else
+            {
+                TempData["UserExistError"] = "خطا در سرور";
+                return RedirectToAction("Login");
+            }
+        }
+        public async Task<IActionResult> VerifyUserAccount(string Hash)
+        {
+            var NidUser = Guid.Parse(Commons.DecryptString(Hash));
+            var activateUserResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Patch, $"{BaseAddress}/User/ActivateUser/{NidUser}");
+            if (activateUserResponse.IsSuccessfulResult())
+                TempData["UserActivateSuccess"] = $"کاربر با موفقیت فعال گردید";
+            else
+                TempData["UserActivateError"] = "خطا در فعال کردن کاربر.لطفا مجددا امتحان کنید";
+            return RedirectToAction("Login");
+        }
+        public IActionResult RegisterResult(bool IsSuccessful)
+        {
+            return View(IsSuccessful);
+        }
+        public async Task<IActionResult> ForgetPassword(string Username)
+        {
+            var getUserResponse = await ApiCall.Call(ApiCall.ConsumerType.FrontendUI, ApiCall.HttpMethods.Get, $"{BaseAddress}/User/GetUserByUsername/{Username}");
+            if (getUserResponse.IsSuccessfulResult())
+            {
+                var user = JsonConvert.DeserializeObject<UserDto>(getUserResponse.Content);
+                if (user != null)
+                {
+                    //MailRequest verify = new MailRequest();
+                    //verify.Subject = $"بازیابی کلمه عبور - {Commons.GetAppName()}";
+                    //verify.ToEmail = user.Username;
+                    //var mailHtml = RenderViewToString.RenderViewAsync(this, "_ResetPasswordEmail", string.Format("{0}://{1}/ChangePassword?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
+                    //verify.Body = mailHtml.Result;
+                    //_db.SendEmail(verify);
+                    return Json(new { success = true, message = "فرم بازیابی کلمه عبور به ایمیل شما ارسال شد.برای تغییر کلمه عبور به ایمیل خود مراجعه نمایید" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "کاربری با این نام کاربری یافت نشد" });
+                }
+            }else
+                return Json(new { success = false, message = "خطا در سرور" });
+        }
+
+        //holds
         public IActionResult Profile()
         {
             //if (Request.Cookies.ContainsKey("Stereo8Login"))
@@ -683,108 +839,6 @@ namespace FrontendUI.Controllers
             //}
             //else
             return RedirectToAction("Login");
-        }
-        [AllowAnonymous]
-        public IActionResult Login()
-        {
-            return View();
-        }
-        public IActionResult SubmitLogin(string Username, string Password, bool Remember)
-        {
-            //var user = _db.LoginWithUsername(Username, Password);
-            //if (user.NidUser == Guid.Empty)
-            //{
-            //    TempData["LoginError"] = "نام کاربری یا کلمه عبور اشتباه است";
-            //    return RedirectToAction("Login");
-            //}
-            //else
-            //{
-            //    if (!user.IsDisabled)
-            //    {
-            //        user.LastLoginDate = DateTime.Now;
-            //        _db.UpdateUser(user);
-            //        if (Request.Cookies.ContainsKey("Stereo8Login"))
-            //            Response.Cookies.Delete("Stereo8Login");
-            //        if (Request.Cookies.ContainsKey("CartCount"))
-            //            Response.Cookies.Delete("CartCount");
-            //        if (Request.Cookies.ContainsKey("FavCount"))
-            //            Response.Cookies.Delete("FavCount");
-            //        if (Remember)
-            //        {
-            //            HttpContext.Response.Cookies.Append("Stereo8Login", UsersAuth.GenerateLoginCookieValue(user, _db.GetCartCountByUserId(user.NidUser), _db.GetFavoriteCountByUserId(user.NidUser)), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //            HttpContext.Response.Cookies.Append("CartCount", _db.GetCartCountByUserId(user.NidUser).ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //            HttpContext.Response.Cookies.Append("FavCount", _db.GetFavoriteCountByUserId(user.NidUser).ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(14), HttpOnly = true, Path = "/" });
-            //        }
-            //        else
-            //        {
-            //            HttpContext.Response.Cookies.Append("Stereo8Login", UsersAuth.GenerateLoginCookieValue(user, _db.GetCartCountByUserId(user.NidUser), _db.GetFavoriteCountByUserId(user.NidUser)), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
-            //            HttpContext.Response.Cookies.Append("CartCount", _db.GetCartCountByUserId(user.NidUser).ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
-            //            HttpContext.Response.Cookies.Append("FavCount", _db.GetFavoriteCountByUserId(user.NidUser).ToString(), new CookieOptions() { Expires = DateTime.Now.AddDays(7), HttpOnly = true, Path = "/" });
-            //        }
-            //        return RedirectToAction("Index");
-            //    }
-            //    else
-            //    {
-            //        TempData["LoginWarning"] = "کاربر غیرفعال می باشد";
-            //        return RedirectToAction("Login");
-            //    }
-            //}
-            return View();
-        }
-        public IActionResult Logout()
-        {
-            //HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            //if (Request.Cookies.ContainsKey("Stereo8Login"))
-            //    Response.Cookies.Delete("Stereo8Login");
-            //if (Request.Cookies.ContainsKey("CartCount"))
-            //    Response.Cookies.Delete("CartCount");
-            //if (Request.Cookies.ContainsKey("FavCount"))
-            //    Response.Cookies.Delete("FavCount");
-            return RedirectToAction("Login");
-        }
-        public IActionResult Register(User user)
-        {
-            //if (!_db.CheckUsernameExist(user.Username))
-            //{
-            //    user.NidUser = Guid.NewGuid();
-            //    user.Password = Commons.EncryptString(user.Password);
-            //    user.CreateDate = DateTime.Now;
-            //    user.IsAdmin = false;
-            //    user.IsDisabled = true;
-            //    if (_db.Add<User>(user))
-            //    {
-            //        MailRequest verify = new MailRequest();
-            //        verify.Subject = $"فعال سازی حساب کاربری - {Commons.GetAppName()}";
-            //        verify.ToEmail = user.Username;
-            //        var mailHtml = RenderViewToString.RenderViewAsync(this, "_AccountVerificationEmail", string.Format("{0}://{1}/VerifyUserAccount?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
-            //        verify.Body = mailHtml.Result;
-            //        _db.SendEmail(verify);
-            //        return RedirectToAction("RegisterResult", new { IsSuccessful = true });
-            //    }
-            //    else
-            //        return RedirectToAction("RegisterResult", new { IsSuccessful = false });
-            //}
-            //else
-            //{
-            //    TempData["UserExistError"] = "نام کاربری وارد شده قبلا ثبت شده است.لطفا ایمیل دیگری وارد کنید";
-            //    return RedirectToAction("Login");
-            //}
-            return View();
-        }
-        public IActionResult VerifyUserAccount(string Hash)
-        {
-            //var NidUser = Guid.Parse(Commons.DecryptString(Hash));
-            //var user = _db.GetUserById(NidUser, false);
-            //user.IsDisabled = false;
-            //if (_db.UpdateUser(user))
-            //    TempData["UserActivateSuccess"] = $"کاربر با نام کاربری {user.Username} با موفقیت فعال گردید";
-            //else
-            //    TempData["UserActivateError"] = "خطا در فعال کردن کاربر.لطفا مجددا امتحان کنید";
-            return RedirectToAction("Login");
-        }
-        public IActionResult RegisterResult(bool IsSuccessful)
-        {
-            return View(IsSuccessful);
         }
         public IActionResult UpdateUser(User user)
         {
@@ -851,25 +905,6 @@ namespace FrontendUI.Controllers
             //else
             //    TempData["AddressError"] = "کاربر مورد نظر یافت نشد";
             return RedirectToAction("Profile");
-        }
-        public IActionResult ForgetPassword(string Username)
-        {
-            //var user = _db.GetUserByUsername(Username, false);
-            //if (user.NidUser != Guid.Empty)
-            //{
-            //    MailRequest verify = new MailRequest();
-            //    verify.Subject = $"بازیابی کلمه عبور - {Commons.GetAppName()}";
-            //    verify.ToEmail = user.Username;
-            //    var mailHtml = RenderViewToString.RenderViewAsync(this, "_ResetPasswordEmail", string.Format("{0}://{1}/ChangePassword?Hash={2}", Request.Scheme, Request.Host.Value, WebUtility.UrlEncode(Commons.EncryptString(user.NidUser.ToString()))));
-            //    verify.Body = mailHtml.Result;
-            //    _db.SendEmail(verify);
-            //    return Json(new { success = true, message = "فرم بازیابی کلمه عبور به ایمیل شما ارسال شد.برای تغییر کلمه عبور به ایمیل خود مراجعه نمایید" });
-            //}
-            //else
-            //{
-            //    return Json(new { success = false, message = "کاربری با این نام کاربری یافت نشد" });
-            //}
-            return View();
         }
         public IActionResult ChangePassword(string Hash)
         {

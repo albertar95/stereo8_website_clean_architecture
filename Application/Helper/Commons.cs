@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Application.DTO.User;
+using Domain;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -58,6 +60,10 @@ namespace Application.Helper
         {
             Random r = new Random();
             return bgColor[r.Next(26)];
+        }
+        public static string GenerateLoginCookieValue(UserDto user, int cartcount = 0, int favcount = 0)
+        {
+            return $"{user.Username},{user.Id.ToString()},{user.FirstName + " " + user.LastName},{cartcount},{favcount}";
         }
     }
 }

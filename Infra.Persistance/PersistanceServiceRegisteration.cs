@@ -20,6 +20,7 @@ namespace Infra.Persistance
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IGeneralRepository, GeneralRepository>();
             services.AddScoped<IBaseRepository, BaseRepository>();
             return services;
