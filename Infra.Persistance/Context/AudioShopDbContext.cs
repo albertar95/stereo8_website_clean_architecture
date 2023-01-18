@@ -31,7 +31,7 @@ namespace Infra.Persistance.Context
         //override onconfiguring
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
-            dbContextOptionsBuilder.UseSqlServer("Server=.\\MSSQL2017;Database=AudioShopMSDb;User Id=sa;Password=safa@123;TrustServerCertificate=true;"
+            dbContextOptionsBuilder.UseSqlServer("CONNECTION_STRING"
             , o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)); // split query join
             dbContextOptionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }

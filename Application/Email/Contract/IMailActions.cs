@@ -10,8 +10,8 @@ namespace Application.Email.Contract
 {
     public interface IMailActions
     {
-        bool ForgetPasswordMail(UserDto user, MailSettings mailSettings);
-        bool VerificationMail(UserDto user, MailSettings mailSettings);
-        bool SendEmail(MailRequest mailRequest, MailSettings mailSettings);
+        bool ForgetPasswordMail(UserDto user);
+        bool VerificationMail(Guid id, string username);
+        bool SendEmail(MailRequest mailRequest);
     }
 }

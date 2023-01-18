@@ -1,5 +1,7 @@
 using Application;
+using Infra.Bus;
 using Infra.Persistance;
+using Infra.SMTP;
 using Microsoft.AspNetCore.Rewrite;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.ConfigurePersistanceService();
 builder.Services.ConfigureApplicationService();
+builder.Services.ConfigureSMTPService();
+builder.Services.ConfigureBusService();
 builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer", o => {
     o.Authority = "http://localhost:8077";
     o.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() { ValidateAudience = false };

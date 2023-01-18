@@ -1,5 +1,7 @@
 ﻿using Application.DTO.User;
 using Application.Feature.User.Requests;
+using Application.MessageBroker.Bus;
+using Application.MessageBroker.Events;
 using Application.Model;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -12,10 +14,12 @@ namespace FrontendApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IEventBus _eventBus;
 
-        public UserController(IMediator mediator)
+        public UserController(IMediator mediator, IEventBus eventBus)
         {
             _mediator = mediator;
+            _eventBus = eventBus;
         }
         [HttpGet("GetUserByUsername/{username}")]
         public async Task<IActionResult> GetUserByUsername(string username) 
@@ -35,7 +39,14 @@ namespace FrontendApi.Controllers
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody]CreateUserDto user)
         {
-            return Ok(await _mediator.Send(new CreateUserRequest() { User = user }));
+            var id = await _mediator.Send(new CreateUserRequest() { User = user });
+            if (id != Guid.Empty)
+            {
+                _eventBus.Publish(new UserCreatedEvent(id,user.Username));
+                return Ok(id);
+            }
+            else
+                return BadRequest();
         }
         [HttpPost("LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody] UserLogin login)

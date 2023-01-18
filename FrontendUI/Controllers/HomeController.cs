@@ -31,7 +31,7 @@ namespace FrontendUI.Controllers
             BaseAddress = configuration.GetSection("frontendApiAddress").Value;
             //BaseAddress = configuration.GetSection("frontendApiAddressDebug").Value;//for debug
             MailBaseAddress = configuration.GetSection("mailApiAddress").Value;
-            MailBaseAddress = configuration.GetSection("mailApiAddressDebug").Value;//for debug
+            //MailBaseAddress = configuration.GetSection("mailApiAddressDebug").Value;//for debug
         }
         //first page section
         public async Task<IActionResult> Index()

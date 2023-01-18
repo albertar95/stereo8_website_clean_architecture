@@ -23,12 +23,12 @@ namespace CommunicationApi.Controllers
         [HttpPost("SendUserVerificationMail")]
         public IActionResult SendUserVerificationMail([FromBody] UserDto user) 
         {
-            return Ok(_mailActions.VerificationMail(user, _mailsettings));
+            return Ok(_mailActions.VerificationMail(user.Id,user.Username));
         }
         [HttpPost("SendForgetPasswordMail")]
         public IActionResult SendForgetPasswordMail([FromBody] UserDto user) 
         {
-            return Ok(_mailActions.ForgetPasswordMail(user,_mailsettings));
+            return Ok(_mailActions.ForgetPasswordMail(user));
         }
     }
 }

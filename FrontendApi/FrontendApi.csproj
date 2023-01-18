@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Infra.Bus\Infra.Bus.csproj" />
     <ProjectReference Include="..\Infra.Persistance\Infra.Persistance.csproj" />
+    <ProjectReference Include="..\Infra.SMTP\Infra.SMTP.csproj" />
   </ItemGroup>
 
 </Project>

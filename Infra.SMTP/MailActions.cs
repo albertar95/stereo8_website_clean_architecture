@@ -17,23 +17,28 @@ namespace Infra.SMTP
 {
     public class MailActions : IMailActions
     {
-        public bool ForgetPasswordMail(UserDto user, MailSettings mailSettings) 
+        private MailSettings mailSettings { get; set; }
+        public MailActions()
+        {
+            mailSettings = new MailSettings() { DisplayName = "وب سایت استریو 8", Host = "webmail.stereo8.ir", Mail = "reply@stereo8.ir", Password = "$2hj47cQ8", Port = 25 };
+        }
+        public bool ForgetPasswordMail(UserDto user) 
         {
             MailRequest verify = new MailRequest();
             verify.Subject = $"بازیابی کلمه عبور - استریو 8";
             verify.ToEmail = user.Username;
             verify.Body = string.Format("http://localhost:8078/ChangePassword?Hash={0}", WebUtility.UrlEncode(Commons.EncryptString(user.Id.ToString())));
-            return SendEmail(verify,mailSettings);
+            return SendEmail(verify);
         }
-        public bool VerificationMail(UserDto user, MailSettings mailSettings) 
+        public bool VerificationMail(Guid id, string username) 
         {
             MailRequest verify = new MailRequest();
             verify.Subject = $"فعال سازی حساب کاربری - استریو 8";
-            verify.ToEmail = user.Username;
-            verify.Body = Razor.Parse("@Model.address", new { address = string.Format("http://localhost:8078/VerifyUserAccount?Hash={0}", WebUtility.UrlEncode(Commons.EncryptString(user.Id.ToString())))  });
-            return SendEmail(verify, mailSettings);
+            verify.ToEmail = username;
+            verify.Body = string.Format("http://localhost:8078/VerifyUserAccount?Hash={0}", WebUtility.UrlEncode(Commons.EncryptString(id.ToString())));
+            return SendEmail(verify);
         }
-        public bool SendEmail(MailRequest mailRequest, MailSettings mailSettings)
+        public bool SendEmail(MailRequest mailRequest)
         {
             var email2 = new MailMessage(mailSettings.Mail, mailRequest.ToEmail);
             email2.Subject = mailRequest.Subject;
