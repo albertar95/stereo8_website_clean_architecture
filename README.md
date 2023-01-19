@@ -1,4 +1,4 @@
-## stereo8 website with micoservice architecture
+## stereo8 website with clean architecture
 
 after designing stereo8 website with asp.net core web application i became familiar with clean architecture and tried to redesign that project with this approach.
 
